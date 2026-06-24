@@ -80,6 +80,20 @@ C:\Program Files\singcli
 
 安装脚本会检查 PATH 中是否已经存在其它 `singcli` 命令；如果存在，会中止以避免命令冲突。
 
+卸载：
+
+```powershell
+.\uninstall-windows.ps1
+```
+
+如果安装到了自定义目录，卸载时也需要指定同一个目录：
+
+```powershell
+.\uninstall-windows.ps1 -InstallDir "D:\apps\singcli"
+```
+
+安装脚本也会把 `uninstall-windows.ps1` 复制到安装目录，之后也可以从安装目录运行卸载脚本。
+
 ## 命令行调用脚本
 
 Linux 下可以使用 `scripts/linux/singcli` 作为包装脚本，把它放到 `/usr/bin/singcli` 后即可直接运行：

@@ -12,9 +12,11 @@ $ErrorActionPreference = "Stop"
 $Root = $PSScriptRoot
 $Jar = Join-Path $Root "dist\singcli.jar"
 $Launcher = Join-Path $Root "scripts\windows\singcli.cmd"
+$Uninstaller = Join-Path $Root "uninstall-windows.ps1"
 $InstallDir = [System.IO.Path]::GetFullPath($InstallDir)
 $InstalledJar = Join-Path $InstallDir "singcli.jar"
 $InstalledLauncher = Join-Path $InstallDir "singcli.cmd"
+$InstalledUninstaller = Join-Path $InstallDir "uninstall-windows.ps1"
 
 function Test-IsAdministrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -126,14 +128,20 @@ if (-not (Test-Path $Launcher)) {
     throw "Windows launcher was not found: $Launcher"
 }
 
+if (-not (Test-Path $Uninstaller)) {
+    throw "Windows uninstaller was not found: $Uninstaller"
+}
+
 New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 Copy-Item $Jar $InstalledJar -Force
 Copy-Item $Launcher $InstalledLauncher -Force
+Copy-Item $Uninstaller $InstalledUninstaller -Force
 
 Add-InstallDirToPath
 
 Write-Host "Installed singcli to: $InstallDir"
 Write-Host "Launcher: $InstalledLauncher"
 Write-Host "Jar: $InstalledJar"
+Write-Host "Uninstaller: $InstalledUninstaller"
 Write-Host "PATH scope: $PathScope"
 Write-Host "Open a new terminal and run: singcli help"
