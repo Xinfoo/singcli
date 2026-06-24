@@ -16,7 +16,7 @@ MAIN_CLASS = "Main"
 
 
 def main() -> int:
-    sources = sorted(SRC_DIR.glob("*.java"))
+    sources = sorted(SRC_DIR.rglob("*.java"))
     if not sources:
         print("No Java sources found in src/", file=sys.stderr)
         return 1
