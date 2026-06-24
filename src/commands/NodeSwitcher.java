@@ -13,7 +13,7 @@ import java.util.Scanner;
 
 class NodeSwitcher {
     // switch 命令读取和校验的配置文件路径必须与 get/start 使用同一套规则。
-    private static final Path CONFIG_PATH = AppPaths.configPath();
+    private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
     static int run(String[] args) {
         // 主流程统一放在 try 块中，失败时打印原因并返回非零退出码。

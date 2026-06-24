@@ -4,11 +4,11 @@ import java.nio.file.Path;
 import java.security.CodeSource;
 
 // 统一管理 singcli 自己使用的路径，避免各个命令分别硬编码 config.json 位置。
-final class AppPaths {
+final class AppPathsSupport {
     private static final String APP_DIR_NAME = "singcli";
     private static final String CONFIG_FILE_NAME = "config.json";
 
-    private AppPaths() {
+    private AppPathsSupport() {
     }
 
     // 返回当前平台下最终使用的配置文件路径。
@@ -26,7 +26,7 @@ final class AppPaths {
 
     // 返回当前程序的安装目录。jar 运行时取 jar 所在目录，开发环境运行 class 时取 class 输出目录。
     static Path installationDirectory() {
-        CodeSource codeSource = AppPaths.class.getProtectionDomain().getCodeSource();
+        CodeSource codeSource = AppPathsSupport.class.getProtectionDomain().getCodeSource();
         if (codeSource == null) {
             return Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
         }

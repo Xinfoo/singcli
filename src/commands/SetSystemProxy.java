@@ -6,7 +6,7 @@ import java.util.List;
 
 // Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
 class SetSystemProxy {
-    private static final Path CONFIG_PATH = AppPaths.configPath();
+    private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
     static int run(String[] args) {
         if (!ProcessSupport.isWindows()) {

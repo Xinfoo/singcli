@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 class StartSingBox {
     // start 命令固定读取平台配置目录下的 config.json。
-    private static final Path CONFIG_PATH = AppPaths.configPath();
+    private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
     static int run(String[] args) {
         // 主流程统一放在 try 块中，任何启动失败都会打印错误并以非零状态退出。
@@ -36,7 +36,7 @@ class StartSingBox {
 
             List<Path> candidates = findSingBoxBinaries();
             if (candidates.isEmpty()) {
-                throw new IllegalArgumentException("sing-box executable was not found in PATH or the installation directory: " + AppPaths.installationDirectory());
+                throw new IllegalArgumentException("sing-box executable was not found in PATH or the installation directory: " + AppPathsSupport.installationDirectory());
             }
 
             // 多个候选时让用户选择，之后用选中的二进制启动进程。
@@ -60,7 +60,7 @@ class StartSingBox {
     private static List<Path> findSingBoxBinaries() {
         Map<String, Path> candidates = new LinkedHashMap<>();
         // 优先允许用户把 sing-box 放在 singcli.jar 同目录，便于做成一个便携安装目录。
-        addCandidate(candidates, AppPaths.installationDirectory().resolve(ProcessSupport.executableName()));
+        addCandidate(candidates, AppPathsSupport.installationDirectory().resolve(ProcessSupport.executableName()));
 
         String pathValue = System.getenv("PATH");
         if (pathValue != null && !pathValue.isBlank()) {
@@ -127,7 +127,7 @@ class StartSingBox {
                 config.toString()
         );
         // 进程工作目录放在配置目录，方便配置里使用相对资源路径。
-        builder.directory(AppPaths.configDirectory().toFile());
+        builder.directory(AppPathsSupport.configDirectory().toFile());
         // 当前工具不接管 sing-box 日志，启动输出直接丢弃。
         builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
         builder.redirectError(ProcessBuilder.Redirect.DISCARD);
