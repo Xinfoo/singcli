@@ -44,6 +44,42 @@ dist/singcli.jar
 java -jar dist/singcli.jar
 ```
 
+## Windows 安装
+
+Windows 下使用根目录的 PowerShell 安装脚本安装预编译好的 jar。安装前需要确认项目目录中已经存在：
+
+```text
+dist\singcli.jar
+```
+
+安装脚本不会执行编译过程，只会复制 `dist\singcli.jar` 和 `scripts\windows\singcli.cmd` 到安装目录，并把安装目录加入 PATH。因为这里安装的是 jar 和调用脚本，Windows 机器仍然需要已经安装 Java 17 或更新版本，并且 `java` 在 PATH 中。
+
+默认安装目录是：
+
+```text
+C:\Program Files\singcli
+```
+
+以管理员身份打开 PowerShell 后运行：
+
+```powershell
+.\install-windows.ps1
+```
+
+自定义安装目录：
+
+```powershell
+.\install-windows.ps1 -InstallDir "D:\apps\singcli"
+```
+
+如果不想写入系统 PATH，只写入当前用户 PATH：
+
+```powershell
+.\install-windows.ps1 -PathScope User
+```
+
+安装脚本会检查 PATH 中是否已经存在其它 `singcli` 命令；如果存在，会中止以避免命令冲突。
+
 ## 命令行调用脚本
 
 Linux 下可以使用 `scripts/linux/singcli` 作为包装脚本，把它放到 `/usr/bin/singcli` 后即可直接运行：

@@ -3,11 +3,11 @@ setlocal
 
 rem Windows launcher for singcli.
 rem Put this file in a directory included in PATH.
-rem The default jar path is C:\Program Files\singcli\singcli.jar.
+rem By default it runs singcli.jar next to this script.
 rem You can override it by setting SINGCLI_JAR.
 
 if not defined SINGCLI_JAR (
-    set "SINGCLI_JAR=%ProgramFiles%\singcli\singcli.jar"
+    set "SINGCLI_JAR=%~dp0singcli.jar"
 )
 
 where java >nul 2>nul
