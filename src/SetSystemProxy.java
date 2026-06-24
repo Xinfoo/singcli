@@ -5,13 +5,13 @@ import java.util.Base64;
 import java.util.List;
 
 // Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
-public class SetSystemProxy {
+class SetSystemProxy {
     private static final Path CONFIG_PATH = AppPaths.configPath();
 
-    public static void main(String[] args) {
+    static int run(String[] args) {
         if (!ProcessSupport.isWindows()) {
             System.err.println("Set system proxy is only supported on Windows.");
-            System.exit(1);
+            return 1;
         }
 
         try {
@@ -23,9 +23,10 @@ public class SetSystemProxy {
             String proxyAddress = ConfigSupport.localProxyAddress(config);
             applyWindowsProxy(proxyAddress);
             System.out.println("Windows system proxy enabled: " + proxyAddress);
+            return 0;
         } catch (Exception e) {
             System.err.println("Set system proxy failed: " + errorMessage(e));
-            System.exit(1);
+            return 1;
         }
     }
 

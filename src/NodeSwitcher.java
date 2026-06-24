@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
-public class NodeSwitcher {
+class NodeSwitcher {
     // switch 命令读取和校验的配置文件路径必须与 get/start 使用同一套规则。
     private static final Path CONFIG_PATH = AppPaths.configPath();
 
-    public static void main(String[] args) {
+    static int run(String[] args) {
         // 主流程统一放在 try 块中，失败时打印原因并返回非零退出码。
         try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
             // 没有配置文件时无法知道 Clash API 和 selector 信息。
@@ -27,11 +27,11 @@ public class NodeSwitcher {
             // 先选择要操作的 sing-box 进程；用户取消选择时正常退出。
             Optional<ProcessHandle> selectedProcess = chooseSingBoxProcess(scanner);
             if (selectedProcess.isEmpty()) {
-                return;
+                return 0;
             }
             ProcessHandle process = selectedProcess.get();
             if (!ensureProcessUsesConfig(process, currentConfig)) {
-                return;
+                return 0;
             }
             // 解析配置，得到 selector tag、候选节点、Clash API 地址和 secret。
             String config = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
@@ -48,7 +48,7 @@ public class NodeSwitcher {
             System.out.print("Select a node number, or press Enter to exit: ");
             String choice = scanner.nextLine().trim();
             if (choice.isEmpty()) {
-                return;
+                return 0;
             }
 
             // 把编号转换为节点名，再调用 Clash API 完成切换。
@@ -56,9 +56,10 @@ public class NodeSwitcher {
             String target = view.nodes().get(index - 1);
             switchNode(view, target);
             System.out.println("Switched to: " + target);
+            return 0;
         } catch (Exception e) {
             System.err.println("Switch failed: " + errorMessage(e));
-            System.exit(1);
+            return 1;
         }
     }
 

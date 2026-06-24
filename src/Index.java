@@ -2,8 +2,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 // 交互式首页菜单：让用户选择获取配置、启动、停止或切换节点。
-public class Index {
-    public static void main(String[] args) {
+class Index {
+    static int run(String[] args) {
         // 从标准输入读取用户选择，使用 UTF-8 兼容中文环境。
         Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
 
@@ -15,22 +15,22 @@ public class Index {
         // 用户明确选择 0 或直接回车时正常结束。
         if (choice.isEmpty() || "0".equals(choice)) {
             System.out.println("Exited.");
-            return;
+            return 0;
         }
 
         // 根据菜单编号转发到对应模块；无效编号以失败状态退出。
-        switch (choice) {
-            case "1" -> ConfigGet.main(args);
-            case "2" -> StartSingBox.main(args);
-            case "3" -> StopSingBox.main(args);
-            case "4" -> NodeSwitcher.main(args);
-            case "5" -> SetSystemProxy.main(args);
-            case "6" -> UnsetSystemProxy.main(args);
+        return switch (choice) {
+            case "1" -> ConfigGet.run(args);
+            case "2" -> StartSingBox.run(args);
+            case "3" -> StopSingBox.run(args);
+            case "4" -> NodeSwitcher.run(args);
+            case "5" -> SetSystemProxy.run(args);
+            case "6" -> UnsetSystemProxy.run(args);
             default -> {
                 System.err.println("Invalid action: " + choice);
-                System.exit(1);
+                yield 1;
             }
-        }
+        };
     }
 
     // 打印首页菜单内容。

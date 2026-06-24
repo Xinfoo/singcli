@@ -6,15 +6,15 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 // 停止 sing-box：列出当前运行进程，支持停止单个或全部。
-public class StopSingBox {
-    public static void main(String[] args) {
+class StopSingBox {
+    static int run(String[] args) {
         // 停止流程统一处理异常，失败时以非零状态退出。
         try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
             // 先搜索所有疑似 sing-box 的进程。
             List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
             if (running.isEmpty()) {
                 System.out.println("No running sing-box process was detected.");
-                return;
+                return 0;
             }
 
             // 只有一个进程时无需再询问编号，直接停止。
@@ -24,7 +24,7 @@ public class StopSingBox {
                 printProcessTable(running);
                 terminateProcesses(List.of(process));
                 System.out.println("Stopped sing-box process: " + process.pid());
-                return;
+                return 0;
             }
 
             // 多个进程时打印带编号列表，由用户决定停止哪个或全部停止。
@@ -33,13 +33,14 @@ public class StopSingBox {
             List<ProcessHandle> selected = chooseProcesses(scanner, running);
             // 用户直接回车表示取消操作，按正常退出处理。
             if (selected.isEmpty()) {
-                return;
+                return 0;
             }
             terminateProcesses(selected);
             System.out.println("Stopped sing-box processes: " + processIds(selected));
+            return 0;
         } catch (Exception e) {
             System.err.println("Stop failed: " + e.getMessage());
-            System.exit(1);
+            return 1;
         }
     }
 

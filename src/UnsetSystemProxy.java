@@ -3,19 +3,20 @@ import java.util.Base64;
 import java.util.List;
 
 // Windows 系统代理取消命令：关闭当前用户系统代理并清理自动配置 URL。
-public class UnsetSystemProxy {
-    public static void main(String[] args) {
+class UnsetSystemProxy {
+    static int run(String[] args) {
         if (!ProcessSupport.isWindows()) {
             System.err.println("Unset system proxy is only supported on Windows.");
-            System.exit(1);
+            return 1;
         }
 
         try {
             applyWindowsProxyUnset();
             System.out.println("Windows system proxy disabled.");
+            return 0;
         } catch (Exception e) {
             System.err.println("Unset system proxy failed: " + errorMessage(e));
-            System.exit(1);
+            return 1;
         }
     }
 

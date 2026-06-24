@@ -11,11 +11,11 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-public class StartSingBox {
+class StartSingBox {
     // start 命令固定读取平台配置目录下的 config.json。
     private static final Path CONFIG_PATH = AppPaths.configPath();
 
-    public static void main(String[] args) {
+    static int run(String[] args) {
         // 主流程统一放在 try 块中，任何启动失败都会打印错误并以非零状态退出。
         try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
             // 启动前先查找已有 sing-box 进程，避免多个进程同时占用端口或使用不同配置。
@@ -26,7 +26,7 @@ public class StartSingBox {
                 // 用户不确认停止旧进程时，保持现状并正常退出。
                 if (!confirm(scanner, "Stop the currently running sing-box process? (y/N): ")) {
                     System.out.println("Exited.");
-                    return;
+                    return 0;
                 }
                 terminateProcesses(running);
             }
@@ -44,9 +44,10 @@ public class StartSingBox {
             Path singBox = chooseSingBox(scanner, candidates);
             startSingBox(singBox);
             System.out.println("sing-box started.");
+            return 0;
         } catch (Exception e) {
             System.err.println("Start failed: " + e.getMessage());
-            System.exit(1);
+            return 1;
         }
     }
 
