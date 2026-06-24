@@ -20,6 +20,7 @@ public class Main {
             case "stop" -> StopSingBox.main(new String[0]);
             case "switch" -> NodeSwitcher.main(new String[0]);
             case "set" -> SetSystemProxy.main(new String[0]);
+            case "unset" -> UnsetSystemProxy.main(new String[0]);
             case "help", "-h", "--help" -> printUsageAndExit(0);
             default -> printUsageAndExit(1);
         }
@@ -35,6 +36,7 @@ public class Main {
         System.out.println("  stop     Stop sing-box");
         System.out.println("  switch   Switch node");
         System.out.println("  set      Set Windows system proxy");
+        System.out.println("  unset    Unset Windows system proxy");
         System.out.println("  help     Show this help message");
         System.out.println();
         System.out.println("No command: open the interactive index menu.");
