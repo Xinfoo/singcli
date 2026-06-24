@@ -210,6 +210,4 @@ class NodeSwitcher {
     private static String encodePathSegment(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
-
-    // 统一提取异常消息；异常没有消息时返回类名，避免输出空白错误。
 }
