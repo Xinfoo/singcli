@@ -1,7 +1,9 @@
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 // 进程相关工具：识别 sing-box 进程，并从进程参数中推断配置文件路径。
 final class ProcessSupport {
@@ -51,6 +53,82 @@ final class ProcessSupport {
         // 相对路径需要结合进程工作目录，否则无法和当前 config.json 比较。
         Optional<Path> workingDirectory = workingDirectory(process);
         return workingDirectory.map(directory -> directory.resolve(path));
+    }
+
+    // 打印不带编号的进程表。
+    static void printProcessTable(List<ProcessHandle> processes) {
+        System.out.printf("%-8s  %-20s  %s%n", "PID", "Command", "Arguments");
+        for (ProcessHandle process : processes) {
+            printProcessRow(process);
+        }
+    }
+
+    // 打印带编号的进程表，用于用户从多个进程中选择。
+    static void printIndexedProcessTable(List<ProcessHandle> processes) {
+        System.out.printf("%-4s  %-8s  %-20s  %s%n", "No.", "PID", "Command", "Arguments");
+        for (int i = 0; i < processes.size(); i++) {
+            System.out.printf("%-4d  ", i + 1);
+            printProcessRow(processes.get(i));
+        }
+    }
+
+    // 打印单个进程信息；ProcessHandle.Info 取不到命令或参数时使用占位值。
+    static void printProcessRow(ProcessHandle process) {
+        ProcessHandle.Info info = process.info();
+        String command = info.command().orElse("-");
+        String arguments = info.arguments().map(args -> String.join(" ", args)).orElse("");
+        System.out.printf("%-8d  %-20s  %s%n", process.pid(), command, arguments);
+    }
+
+    // 先温和终止进程，超时后强制终止，最后校验是否仍有残留。
+    static void terminateProcesses(List<ProcessHandle> processes) {
+        if (processes.isEmpty()) {
+            return;
+        }
+        for (ProcessHandle process : processes) {
+            process.destroy();
+        }
+        waitForExit(processes, 3);
+        for (ProcessHandle process : processes) {
+            if (process.isAlive()) {
+                process.destroyForcibly();
+            }
+        }
+        waitForExit(processes, 5);
+        List<ProcessHandle> stillAlive = processes.stream().filter(ProcessHandle::isAlive).toList();
+        if (!stillAlive.isEmpty()) {
+            throw new IllegalStateException("Some sing-box processes could not be stopped: " + processIds(stillAlive));
+        }
+    }
+
+    // 在指定秒数内等待进程退出；等待异常由后续 isAlive 统一判断。
+    static void waitForExit(List<ProcessHandle> processes, long seconds) {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(seconds);
+        for (ProcessHandle process : processes) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0 || !process.isAlive()) {
+                continue;
+            }
+            try {
+                process.onExit().get(remaining, TimeUnit.NANOSECONDS);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    // 把进程列表格式化成逗号分隔的 PID 字符串。
+    static String processIds(List<ProcessHandle> processes) {
+        List<String> ids = new ArrayList<>();
+        for (ProcessHandle process : processes) {
+            ids.add(Long.toString(process.pid()));
+        }
+        return String.join(", ", ids);
+    }
+
+    // 输出异常信息；异常没有 message 时退回异常类名。
+    static String errorMessage(Exception e) {
+        String message = e.getMessage();
+        return message == null || message.isBlank() ? e.getClass().getSimpleName() : message;
     }
 
     // 只从命令行参数中提取 -c、--config 或 --config= 形式的原始配置路径。

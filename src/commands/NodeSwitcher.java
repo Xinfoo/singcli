@@ -58,7 +58,7 @@ class NodeSwitcher {
             System.out.println("Switched to: " + target);
             return 0;
         } catch (Exception e) {
-            System.err.println("Switch failed: " + errorMessage(e));
+            System.err.println("Switch failed: " + ProcessSupport.errorMessage(e));
             return 1;
         }
     }
@@ -73,13 +73,13 @@ class NodeSwitcher {
         if (running.size() == 1) {
             ProcessHandle process = running.get(0);
             System.out.println("Detected a sing-box process:");
-            printProcessTable(running);
+            ProcessSupport.printProcessTable(running);
             return Optional.of(process);
         }
 
         // 多个进程时显示编号列表，避免误操作其它 sing-box 实例。
         System.out.println("Detected multiple sing-box processes. Select one:");
-        printIndexedProcessTable(running);
+        ProcessSupport.printIndexedProcessTable(running);
         System.out.print("Enter the process number to operate on, or press Enter to exit: ");
         String choice = scanner.nextLine().trim();
         // 空输入表示用户取消切换操作。
@@ -126,31 +126,6 @@ class NodeSwitcher {
         }
     }
 
-    // 打印普通进程表，用于只有一个进程的提示。
-    private static void printProcessTable(List<ProcessHandle> processes) {
-        System.out.printf("%-8s  %-20s  %s%n", "PID", "Command", "Arguments");
-        for (ProcessHandle process : processes) {
-            printProcessRow(process);
-        }
-    }
-
-    // 打印带编号的进程表，用于多个进程时选择。
-    private static void printIndexedProcessTable(List<ProcessHandle> processes) {
-        System.out.printf("%-4s  %-8s  %-20s  %s%n", "No.", "PID", "Command", "Arguments");
-        for (int i = 0; i < processes.size(); i++) {
-            System.out.printf("%-4d  ", i + 1);
-            printProcessRow(processes.get(i));
-        }
-    }
-
-    // 打印单个进程的信息行；命令或参数取不到时使用占位值。
-    private static void printProcessRow(ProcessHandle process) {
-        ProcessHandle.Info info = process.info();
-        String command = info.command().orElse("-");
-        String arguments = info.arguments().map(args -> String.join(" ", args)).orElse("");
-        System.out.printf("%-8d  %-20s  %s%n", process.pid(), command, arguments);
-    }
-
     // 通过 Clash API 查询 selector 当前使用的节点名称。
     private static Optional<String> queryCurrentNode(ConfigSupport.ConfigView view) {
         try {
@@ -161,7 +136,7 @@ class NodeSwitcher {
             }
             System.out.println("Failed to read the current node. HTTP " + response.statusCode());
         } catch (Exception e) {
-            System.out.println("Failed to read the current node: " + errorMessage(e));
+            System.out.println("Failed to read the current node: " + ProcessSupport.errorMessage(e));
             System.out.println("Make sure sing-box is running and using a config.json with Clash API enabled.");
         }
         return Optional.empty();
@@ -237,8 +212,4 @@ class NodeSwitcher {
     }
 
     // 统一提取异常消息；异常没有消息时返回类名，避免输出空白错误。
-    private static String errorMessage(Exception e) {
-        String message = e.getMessage();
-        return message == null || message.isBlank() ? e.getClass().getSimpleName() : message;
-    }
 }

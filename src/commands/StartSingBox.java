@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 class StartSingBox {
     // start 命令固定读取平台配置目录下的 config.json。
@@ -22,13 +21,13 @@ class StartSingBox {
             List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
             if (!running.isEmpty()) {
                 System.out.println("Detected an existing running sing-box process:");
-                printProcessTable(running);
+                ProcessSupport.printProcessTable(running);
                 // 用户不确认停止旧进程时，保持现状并正常退出。
                 if (!confirm(scanner, "Stop the currently running sing-box process? (y/N): ")) {
                     System.out.println("Exited.");
                     return 0;
                 }
-                terminateProcesses(running);
+                ProcessSupport.terminateProcesses(running);
             }
 
             if (!Files.exists(CONFIG_PATH)) {
@@ -46,20 +45,8 @@ class StartSingBox {
             System.out.println("sing-box started.");
             return 0;
         } catch (Exception e) {
-            System.err.println("Start failed: " + e.getMessage());
+            System.err.println("Start failed: " + ProcessSupport.errorMessage(e));
             return 1;
-        }
-    }
-
-    // 打印检测到的进程列表，便于用户确认当前运行的是哪个 sing-box。
-    private static void printProcessTable(List<ProcessHandle> processes) {
-        System.out.printf("%-8s  %-20s  %s%n", "PID", "Command", "Arguments");
-        for (ProcessHandle process : processes) {
-            // Java 的 ProcessHandle.Info 可能拿不到命令或参数，所以都提供默认显示。
-            ProcessHandle.Info info = process.info();
-            String command = info.command().orElse("-");
-            String arguments = info.arguments().map(args -> String.join(" ", args)).orElse("");
-            System.out.printf("%-8d  %-20s  %s%n", process.pid(), command, arguments);
         }
     }
 
@@ -68,51 +55,6 @@ class StartSingBox {
         System.out.print(prompt);
         String answer = scanner.nextLine().trim().toLowerCase(Locale.ROOT);
         return "y".equals(answer) || "yes".equals(answer);
-    }
-
-    // 先温和终止进程，超时后再强制终止，最后检查是否仍有残留。
-    private static void terminateProcesses(List<ProcessHandle> processes) {
-        for (ProcessHandle process : processes) {
-            process.destroy();
-        }
-        waitForExit(processes, 3);
-        // 仍未退出的进程使用强制终止，防止端口继续被占用。
-        for (ProcessHandle process : processes) {
-            if (process.isAlive()) {
-                process.destroyForcibly();
-            }
-        }
-        waitForExit(processes, 5);
-        // 如果强制终止后仍有存活进程，就把 PID 返回给用户排查。
-        List<ProcessHandle> stillAlive = processes.stream().filter(ProcessHandle::isAlive).toList();
-        if (!stillAlive.isEmpty()) {
-            throw new IllegalStateException("Some sing-box processes could not be stopped: " + processIds(stillAlive));
-        }
-    }
-
-    // 在总超时时间内等待一组进程退出；单个进程等待失败不立即中断整体清理。
-    private static void waitForExit(List<ProcessHandle> processes, long seconds) {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(seconds);
-        for (ProcessHandle process : processes) {
-            long remaining = deadline - System.nanoTime();
-            // 超时或进程已退出时跳过等待。
-            if (remaining <= 0 || !process.isAlive()) {
-                continue;
-            }
-            try {
-                process.onExit().get(remaining, TimeUnit.NANOSECONDS);
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    // 把进程列表格式化成逗号分隔的 PID 字符串，用于错误消息。
-    private static String processIds(List<ProcessHandle> processes) {
-        List<String> ids = new ArrayList<>();
-        for (ProcessHandle process : processes) {
-            ids.add(Long.toString(process.pid()));
-        }
-        return String.join(", ", ids);
     }
 
     private static List<Path> findSingBoxBinaries() {

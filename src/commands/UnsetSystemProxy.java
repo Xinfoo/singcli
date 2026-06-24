@@ -15,7 +15,7 @@ class UnsetSystemProxy {
             System.out.println("Windows system proxy disabled.");
             return 0;
         } catch (Exception e) {
-            System.err.println("Unset system proxy failed: " + errorMessage(e));
+            System.err.println("Unset system proxy failed: " + ProcessSupport.errorMessage(e));
             return 1;
         }
     }
@@ -73,10 +73,5 @@ if (-not [WinInetProxyRefresh]::InternetSetOptionW([IntPtr]::Zero, 37, [IntPtr]:
     // PowerShell 的 EncodedCommand 要求使用 UTF-16LE 后再 Base64。
     private static String encodedPowerShellCommand(String script) {
         return Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
-    }
-
-    private static String errorMessage(Exception e) {
-        String message = e.getMessage();
-        return message == null || message.isBlank() ? e.getClass().getSimpleName() : message;
     }
 }
