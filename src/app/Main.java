@@ -37,7 +37,7 @@ public class Main {
 
     // 输出命令行用法，退出码由 main 统一处理。
     private static void printUsage() {
-        System.out.println("Usage: java -jar singcli.jar [command]");
+        System.out.println("Usage: singcli [command]");
         System.out.println();
         System.out.println("Commands:");
         System.out.println("  get      Fetch config and generate config.json");
