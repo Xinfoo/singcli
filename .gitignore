@@ -3,4 +3,5 @@ build/
 dist/
 .makepkg-build/
 pkg/
+sing-box/
 *.zst

@@ -8,6 +8,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $InstallDir = [System.IO.Path]::GetFullPath($InstallDir)
+$InstalledSingBoxManifest = Join-Path $InstallDir "sing-box-files.txt"
 
 function Test-IsAdministrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -80,6 +81,17 @@ $installedFiles = @(
     (Join-Path $InstallDir "singcli.jar"),
     (Join-Path $InstallDir "singcli.cmd")
 )
+
+if (Test-Path $InstalledSingBoxManifest) {
+    $singBoxFiles = Get-Content $InstalledSingBoxManifest | Where-Object { $_ -and $_.Trim() }
+    foreach ($fileName in $singBoxFiles) {
+        $file = Join-Path $InstallDir $fileName
+        if (Test-Path $file) {
+            Remove-Item $file -Force
+        }
+    }
+    Remove-Item $InstalledSingBoxManifest -Force
+}
 
 foreach ($file in $installedFiles) {
     if (Test-Path $file) {
