@@ -44,6 +44,33 @@ dist/singcli.jar
 java -jar dist/singcli.jar
 ```
 
+## 命令行调用脚本
+
+Linux 下可以使用 `scripts/linux/singcli` 作为包装脚本，把它放到 `/usr/bin/singcli` 后即可直接运行：
+
+```bash
+singcli start
+```
+
+Windows 下可以使用 `scripts/windows/singcli.cmd` 作为包装脚本。默认 jar 路径是：
+
+```text
+C:\Program Files\singcli\singcli.jar
+```
+
+把 `singcli.cmd` 放到 `PATH` 中的目录后，即可在终端运行：
+
+```bat
+singcli start
+```
+
+如果 jar 不在默认路径，可以设置环境变量 `SINGCLI_JAR`：
+
+```bat
+set SINGCLI_JAR=D:\apps\singcli\singcli.jar
+singcli start
+```
+
 ## 命令
 
 ```bash
