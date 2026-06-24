@@ -1,6 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 
 // Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
@@ -32,25 +33,34 @@ public class SetSystemProxy {
     private static void applyWindowsProxy(String proxyAddress) throws Exception {
         String script = """
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $path = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings'
 New-Item -Path $path -Force | Out-Null
-New-ItemProperty -Path $path -Name 'ProxyServer' -Value '%s' -PropertyType String -Force | Out-Null
-New-ItemProperty -Path $path -Name 'ProxyOverride' -Value '<local>' -PropertyType String -Force | Out-Null
-New-ItemProperty -Path $path -Name 'AutoDetect' -Value 0 -PropertyType DWord -Force | Out-Null
-New-ItemProperty -Path $path -Name 'AutoConfigURL' -Value '' -PropertyType String -Force | Out-Null
-New-ItemProperty -Path $path -Name 'ProxyEnable' -Value 1 -PropertyType DWord -Force | Out-Null
+Remove-ItemProperty -Path $path -Name 'ProxyServer' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $path -Name 'ProxyOverride' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $path -Name 'AutoDetect' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $path -Name 'AutoConfigURL' -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path $path -Name 'ProxyEnable' -ErrorAction SilentlyContinue
+New-ItemProperty -Path $path -Name 'ProxyServer' -Value '%s' -PropertyType String | Out-Null
+New-ItemProperty -Path $path -Name 'ProxyOverride' -Value '<local>' -PropertyType String | Out-Null
+New-ItemProperty -Path $path -Name 'AutoDetect' -Value 0 -PropertyType DWord | Out-Null
+New-ItemProperty -Path $path -Name 'ProxyEnable' -Value 1 -PropertyType DWord | Out-Null
 $signature = @'
 using System;
 using System.Runtime.InteropServices;
 
 public static class WinInetProxyRefresh {
-    [DllImport("wininet.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    [DllImport("wininet.dll", EntryPoint = "InternetSetOptionW", ExactSpelling = true, SetLastError = true)]
     public static extern bool InternetSetOptionW(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
 }
 '@
 Add-Type -TypeDefinition $signature
-[WinInetProxyRefresh]::InternetSetOptionW([IntPtr]::Zero, 39, [IntPtr]::Zero, 0) | Out-Null
-[WinInetProxyRefresh]::InternetSetOptionW([IntPtr]::Zero, 37, [IntPtr]::Zero, 0) | Out-Null
+if (-not [WinInetProxyRefresh]::InternetSetOptionW([IntPtr]::Zero, 39, [IntPtr]::Zero, 0)) {
+    throw "InternetSetOptionW(INTERNET_OPTION_SETTINGS_CHANGED) failed: $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
+}
+if (-not [WinInetProxyRefresh]::InternetSetOptionW([IntPtr]::Zero, 37, [IntPtr]::Zero, 0)) {
+    throw "InternetSetOptionW(INTERNET_OPTION_REFRESH) failed: $([Runtime.InteropServices.Marshal]::GetLastWin32Error())"
+}
 """.formatted(powershellSingleQuoted(proxyAddress));
 
         ProcessBuilder builder = new ProcessBuilder(List.of(
@@ -59,8 +69,8 @@ Add-Type -TypeDefinition $signature
                 "-NonInteractive",
                 "-ExecutionPolicy",
                 "Bypass",
-                "-Command",
-                script
+                "-EncodedCommand",
+                encodedPowerShellCommand(script)
         ));
         builder.redirectErrorStream(true);
         Process process = builder.start();
@@ -74,6 +84,11 @@ Add-Type -TypeDefinition $signature
     // PowerShell 单引号字符串内部用两个单引号表示一个单引号。
     private static String powershellSingleQuoted(String value) {
         return value.replace("'", "''");
+    }
+
+    // PowerShell 的 EncodedCommand 要求使用 UTF-16LE 后再 Base64。
+    private static String encodedPowerShellCommand(String script) {
+        return Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
     }
 
     private static String errorMessage(Exception e) {
