@@ -57,6 +57,7 @@ get      获取配置并生成 config.json
 start    启动 sing-box
 stop     停止 sing-box
 switch   切换节点
+set      设置 Windows 系统代理
 help     显示帮助信息
 ```
 
@@ -115,6 +116,12 @@ java -jar singcli.jar start
 java -jar singcli.jar switch
 ```
 
+设置 Windows 系统代理：
+
+```bash
+java -jar singcli.jar set
+```
+
 停止 `sing-box`：
 
 ```bash
@@ -125,6 +132,7 @@ java -jar singcli.jar stop
 
 - `switch` 命令依赖写入 `config.json` 的 Clash API。
 - 默认本地代理地址是 `http://127.0.0.1:7897`，需要代理的应用可以手动使用这个地址。
+- `set` 命令只在 Windows 下工作，会把配置里的本地代理地址写入当前用户的系统代理注册表，并刷新系统代理设置。
 - 如果检测到多个 `sing-box` 进程，`switch` 会要求用户选择要操作的进程。
 - `switch` 会检查选中的进程是否正在使用 singcli 管理的同一个 `config.json`。如果不一致，会中止切换，但不会停止该进程。
 - 在 Windows 上，如果 `sing-box` 由 singcli 启动，或启动时使用绝对配置路径，配置路径校验最可靠。

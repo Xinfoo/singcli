@@ -77,6 +77,25 @@ final class ConfigSupport {
         return new ConfigView(selector.tag, selector.nodes, controller, secret);
     }
 
+    // 从顶层 inbounds 中读取本地代理监听地址，供 Windows 系统代理设置使用。
+    static String localProxyAddress(String json) {
+        FieldLocation inboundsField = findFieldInObject(json, "inbounds");
+        if (inboundsField == null || json.charAt(inboundsField.valueStart) != '[') {
+            throw new IllegalArgumentException("Top-level inbounds array was not found");
+        }
+
+        String inboundsArray = json.substring(inboundsField.valueStart, inboundsField.valueEnd + 1);
+        for (String inbound : objectElements(inboundsArray)) {
+            int port = intFieldOrDefault(inbound, "listen_port", -1);
+            if (port <= 0) {
+                continue;
+            }
+            String listen = stringFieldOrDefault(inbound, "listen", "127.0.0.1");
+            return listen + ":" + port;
+        }
+        throw new IllegalArgumentException("No local inbound listen_port was found");
+    }
+
     // 在 outbounds 数组中寻找 selector；优先 tag 为 proxy 的 selector，否则使用第一个 selector。
     private static SelectorView findSelector(String outboundsArray) {
         SelectorView fallback = null;
@@ -336,6 +355,20 @@ final class ConfigSupport {
             return fallback;
         }
         return parseString(objectJson, location.valueStart).value;
+    }
+
+    // 读取对象中的整数字段；字段不存在、类型不对或无法解析时返回默认值。
+    private static int intFieldOrDefault(String objectJson, String field, int fallback) {
+        FieldLocation location = findFieldInObject(objectJson, field);
+        if (location == null || location.valueStart > location.valueEnd) {
+            return fallback;
+        }
+        String value = objectJson.substring(location.valueStart, location.valueEnd + 1).trim();
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
     }
 
     // 跳过 JSON 中的空白字符，返回第一个非空白位置。
