@@ -66,7 +66,18 @@ C:\Program Files\singcli
 .\install-windows.ps1
 ```
 
-附带 `sing-box.exe` 的安装方式还会把项目 `sing-box` 目录中的 Windows 版 `sing-box.exe` 及其同目录 DLL 一起复制到安装目录：
+附带 `sing-box.exe` 的安装方式还会把项目 `sing-box` 目录中的 Windows 版 `sing-box.exe` 及其同目录 DLL 一起复制到安装目录。运行前请先把 Windows 版 `sing-box.exe` 放到项目根目录的 `sing-box` 目录中：
+
+```text
+singcli\
+  dist\
+    singcli.jar
+  sing-box\
+    sing-box.exe
+    *.dll
+```
+
+`sing-box` 目录下只能有一个 `sing-box.exe`。如果下载的 sing-box 压缩包解压后带有子目录，也可以直接保留子目录结构；安装脚本会递归查找唯一的 `sing-box.exe`，并复制它同目录下的 DLL。
 
 ```powershell
 .\install-windows-with-sing-box.ps1
