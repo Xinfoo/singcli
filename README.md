@@ -166,7 +166,7 @@ $XDG_CONFIG_HOME/singcli/config.json
 Windows：
 
 ```text
-%APPDATA%\local\singcli\config.json
+%APPDATA%\singcli\config.json
 ```
 
 `get`、`start` 和 `switch` 命令都会使用同一个配置文件路径。

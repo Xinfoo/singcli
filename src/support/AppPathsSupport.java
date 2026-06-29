@@ -16,7 +16,7 @@ final class AppPathsSupport {
         return configDirectory().resolve(CONFIG_FILE_NAME);
     }
 
-    // Linux 使用 XDG 配置目录，Windows 使用 APPDATA 下的 local/singcli。
+    // Linux 使用 XDG 配置目录，Windows 使用 APPDATA 下的 singcli。
     static Path configDirectory() {
         if (ProcessSupport.isWindows()) {
             return windowsConfigDirectory();
@@ -51,12 +51,12 @@ final class AppPathsSupport {
         return Path.of(System.getProperty("user.home"), ".config", APP_DIR_NAME);
     }
 
-    // 按需求把配置放到 %APPDATA%\local\singcli；APPDATA 不存在时给出保守 fallback。
+    // 按需求把配置放到 %APPDATA%\singcli；APPDATA 不存在时给出保守 fallback。
     private static Path windowsConfigDirectory() {
         String appData = System.getenv("APPDATA");
         if (appData != null && !appData.isBlank()) {
-            return Path.of(appData, "local", APP_DIR_NAME);
+            return Path.of(appData, APP_DIR_NAME);
         }
-        return Path.of(System.getProperty("user.home"), "AppData", "Roaming", "local", APP_DIR_NAME);
+        return Path.of(System.getProperty("user.home"), "AppData", "Roaming", APP_DIR_NAME);
     }
 }
