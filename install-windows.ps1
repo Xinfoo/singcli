@@ -24,6 +24,27 @@ function Test-IsAdministrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Restart-AsAdministratorIfNeeded {
+    if ($PathScope -ne "Machine" -or (Test-IsAdministrator)) {
+        return
+    }
+
+    $arguments = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "`"$PSCommandPath`"",
+        "-InstallDir", "`"$InstallDir`"",
+        "-PathScope", $PathScope
+    )
+    if ($Force) {
+        $arguments += "-Force"
+    }
+
+    Write-Host "Requesting administrator privileges for Machine PATH installation..."
+    $process = Start-Process -FilePath "powershell.exe" -ArgumentList $arguments -Verb RunAs -Wait -PassThru
+    exit $process.ExitCode
+}
+
 function Normalize-PathForCompare([string] $Path) {
     return [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
 }
@@ -112,9 +133,7 @@ function Add-InstallDirToPath {
     Send-EnvironmentChangeNotification
 }
 
-if ($PathScope -eq "Machine" -and -not (Test-IsAdministrator)) {
-    throw "Machine PATH installation requires an elevated PowerShell session. Re-run as Administrator, or use -PathScope User."
-}
+Restart-AsAdministratorIfNeeded
 
 if (-not $Force) {
     Assert-NoSingcliCommandConflict

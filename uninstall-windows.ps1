@@ -16,6 +16,24 @@ function Test-IsAdministrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Restart-AsAdministratorIfNeeded {
+    if ($PathScope -ne "Machine" -or (Test-IsAdministrator)) {
+        return
+    }
+
+    $arguments = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass",
+        "-File", "`"$PSCommandPath`"",
+        "-InstallDir", "`"$InstallDir`"",
+        "-PathScope", $PathScope
+    )
+
+    Write-Host "Requesting administrator privileges for Machine PATH uninstall..."
+    $process = Start-Process -FilePath "powershell.exe" -ArgumentList $arguments -Verb RunAs -Wait -PassThru
+    exit $process.ExitCode
+}
+
 function Normalize-PathForCompare([string] $Path) {
     return [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
 }
@@ -71,9 +89,7 @@ function Remove-InstallDirFromPath {
     Send-EnvironmentChangeNotification
 }
 
-if ($PathScope -eq "Machine" -and -not (Test-IsAdministrator)) {
-    throw "Machine PATH uninstall requires an elevated PowerShell session. Re-run as Administrator, or use -PathScope User."
-}
+Restart-AsAdministratorIfNeeded
 
 Remove-InstallDirFromPath
 

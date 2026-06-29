@@ -60,7 +60,7 @@ dist\singcli.jar
 C:\Program Files\singcli
 ```
 
-不附带 `sing-box.exe` 的安装方式只会复制 `dist\singcli.jar`、`scripts\windows\singcli.cmd` 和卸载脚本到安装目录，并把安装目录加入 PATH。以管理员身份打开 PowerShell 后运行：
+不附带 `sing-box.exe` 的安装方式只会复制 `dist\singcli.jar`、`scripts\windows\singcli.cmd` 和卸载脚本到安装目录，并把安装目录加入 PATH。默认写入 Machine PATH；如果当前 PowerShell 不是管理员，安装脚本会自动请求管理员权限。运行：
 
 ```powershell
 .\install-windows.ps1
