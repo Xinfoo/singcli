@@ -25,12 +25,13 @@ class NodeSwitcher {
             Path currentConfig = normalizeConfigPath(CONFIG_PATH);
 
             // 先选择要操作的 sing-box 进程；用户取消选择时正常退出。
-            Optional<ProcessHandle> selectedProcess = chooseSingBoxProcess(scanner);
+            Optional<ProcessSelection> selectedProcess = chooseSingBoxProcess(scanner);
             if (selectedProcess.isEmpty()) {
                 return 0;
             }
-            ProcessHandle process = selectedProcess.get();
-            if (!ensureProcessUsesConfig(process, currentConfig)) {
+            ProcessSelection selection = selectedProcess.get();
+            ProcessHandle process = selection.process();
+            if (!ensureProcessUsesConfig(process, currentConfig, selection.onlyProcess() && ProcessSupport.isWindows())) {
                 return 0;
             }
             // 解析配置，得到 selector tag、候选节点、Clash API 地址和 secret。
@@ -64,7 +65,7 @@ class NodeSwitcher {
     }
 
     // 搜索运行中的 sing-box 进程；多个进程时要求用户明确选择。
-    private static Optional<ProcessHandle> chooseSingBoxProcess(Scanner scanner) {
+    private static Optional<ProcessSelection> chooseSingBoxProcess(Scanner scanner) {
         List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
         if (running.isEmpty()) {
             throw new IllegalStateException("No running sing-box process was detected.");
@@ -74,7 +75,7 @@ class NodeSwitcher {
             ProcessHandle process = running.get(0);
             System.out.println("Detected a sing-box process:");
             ProcessSupport.printProcessTable(running);
-            return Optional.of(process);
+            return Optional.of(new ProcessSelection(process, true));
         }
 
         // 多个进程时显示编号列表，避免误操作其它 sing-box 实例。
@@ -91,18 +92,24 @@ class NodeSwitcher {
             // 输入必须是列表范围内的编号。
             int index = Integer.parseInt(choice);
             if (index >= 1 && index <= running.size()) {
-                return Optional.of(running.get(index - 1));
+                return Optional.of(new ProcessSelection(running.get(index - 1), false));
             }
         } catch (NumberFormatException ignored) {
         }
         throw new IllegalArgumentException("Invalid process number: " + choice);
     }
 
-    private static boolean ensureProcessUsesConfig(ProcessHandle process, Path currentConfig) {
+    private static boolean ensureProcessUsesConfig(ProcessHandle process, Path currentConfig, boolean allowUnknownConfig) {
         Optional<Path> processConfig = ProcessSupport.configPath(process);
         if (processConfig.isEmpty()) {
-            System.err.println("Switch aborted: could not determine the config file used by sing-box process " + process.pid());
-            return false;
+            if (!allowUnknownConfig) {
+                System.err.println("Switch aborted: could not determine the config file used by selected sing-box process "
+                        + process.pid() + ".");
+                return false;
+            }
+            System.out.println("Could not determine the config file used by sing-box process " + process.pid()
+                    + ". Continuing with Clash API validation.");
+            return true;
         }
 
         // 两边都转换为规范路径后比较，可处理相对路径和符号链接。
@@ -114,6 +121,9 @@ class NodeSwitcher {
             return false;
         }
         return true;
+    }
+
+    private record ProcessSelection(ProcessHandle process, boolean onlyProcess) {
     }
 
     // 把路径转成绝对规范路径；存在的路径尽量解析到真实路径。

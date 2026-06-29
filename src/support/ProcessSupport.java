@@ -1,3 +1,4 @@
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +77,10 @@ final class ProcessSupport {
     static void printProcessRow(ProcessHandle process) {
         ProcessHandle.Info info = process.info();
         String command = info.command().orElse("-");
-        String arguments = info.arguments().map(args -> String.join(" ", args)).orElse("");
+        String arguments = info.arguments()
+                .map(args -> String.join(" ", args))
+                .or(() -> windowsCommandLine(process).map(ProcessSupport::displayArgumentsFromCommandLine))
+                .orElse("");
         System.out.printf("%-8d  %-20s  %s%n", process.pid(), command, arguments);
     }
 
@@ -134,10 +138,23 @@ final class ProcessSupport {
     // 只从命令行参数中提取 -c、--config 或 --config= 形式的原始配置路径。
     private static Optional<Path> rawConfigPath(ProcessHandle process) {
         Optional<String[]> arguments = process.info().arguments();
-        if (arguments.isEmpty()) {
-            return Optional.empty();
+        if (arguments.isPresent()) {
+            Optional<Path> config = rawConfigPath(arguments.get());
+            if (config.isPresent()) {
+                return config;
+            }
         }
-        String[] values = arguments.get();
+
+        if (isWindows()) {
+            return windowsCommandLine(process)
+                    .map(ProcessSupport::commandLineToArguments)
+                    .flatMap(values -> rawConfigPath(values.toArray(String[]::new)));
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<Path> rawConfigPath(String[] values) {
         for (int i = 0; i < values.length; i++) {
             String argument = values[i];
             // -c config.json 或 --config config.json：路径在下一个参数。
@@ -150,6 +167,78 @@ final class ProcessSupport {
             }
         }
         return Optional.empty();
+    }
+
+    // Windows 上 ProcessHandle.Info.arguments() 经常为空；用 WMI/CIM 读取完整命令行作为兜底。
+    private static Optional<String> windowsCommandLine(ProcessHandle process) {
+        if (!isWindows()) {
+            return Optional.empty();
+        }
+
+        String script = "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
+                + "$p = Get-CimInstance Win32_Process -Filter 'ProcessId = " + process.pid() + "'; "
+                + "if ($null -ne $p -and $null -ne $p.CommandLine) { [Console]::Out.Write($p.CommandLine) }";
+        ProcessBuilder builder = new ProcessBuilder(
+                "powershell.exe",
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                script
+        );
+        builder.redirectErrorStream(true);
+
+        try {
+            Process powershell = builder.start();
+            if (!powershell.waitFor(3, TimeUnit.SECONDS)) {
+                powershell.destroyForcibly();
+                return Optional.empty();
+            }
+            String output = new String(powershell.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            int exitCode = powershell.exitValue();
+            if (exitCode != 0 || output.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(output);
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private static String displayArgumentsFromCommandLine(String commandLine) {
+        List<String> arguments = commandLineToArguments(commandLine);
+        if (arguments.size() <= 1) {
+            return "";
+        }
+        return String.join(" ", arguments.subList(1, arguments.size()));
+    }
+
+    private static List<String> commandLineToArguments(String commandLine) {
+        List<String> arguments = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean quoted = false;
+
+        for (int i = 0; i < commandLine.length(); i++) {
+            char ch = commandLine.charAt(i);
+            if (ch == '"') {
+                quoted = !quoted;
+                continue;
+            }
+            if (Character.isWhitespace(ch) && !quoted) {
+                if (!current.isEmpty()) {
+                    arguments.add(current.toString());
+                    current.setLength(0);
+                }
+                continue;
+            }
+            current.append(ch);
+        }
+
+        if (!current.isEmpty()) {
+            arguments.add(current.toString());
+        }
+        return arguments;
     }
 
     // 获取目标进程工作目录；Linux/Unix 下通过 /proc/<pid>/cwd 读取。
