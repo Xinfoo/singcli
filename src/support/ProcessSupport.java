@@ -43,6 +43,7 @@ final class ProcessSupport {
 
     // 判断指定进程是否正在监听 TCP 端口。用于从多个 sing-box 中定位 Clash API 实例。
     static boolean isListeningOnTcpPort(ProcessHandle process, int port) {
+        // Windows 没有 /proc，分别使用 PowerShell 和 Linux procfs 实现相同的 PID/端口匹配。
         return isWindows()
                 ? isListeningOnTcpPortWindows(process.pid(), port)
                 : isListeningOnTcpPortProc(process.pid(), port);
@@ -51,13 +52,19 @@ final class ProcessSupport {
     private static boolean isListeningOnTcpPortProc(long pid, int port) {
         Path fdDirectory = Path.of("/proc", Long.toString(pid), "fd");
         try (var entries = Files.list(fdDirectory)) {
+            // /proc/<pid>/fd 中的 socket:[inode] 表明哪些 socket 归该进程所有。
             var socketInodes = entries.map(path -> {
-                        try { return Files.readSymbolicLink(path).toString(); }
-                        catch (Exception ignored) { return ""; }
+                        try {
+                            return Files.readSymbolicLink(path).toString();
+                        } catch (Exception ignored) {
+                            // 进程运行期间 fd 可能随时关闭，单个链接读取失败不影响其它 fd。
+                            return "";
+                        }
                     })
                     .filter(value -> value.startsWith("socket:[") && value.endsWith("]"))
                     .map(value -> value.substring(8, value.length() - 1))
                     .collect(java.util.stream.Collectors.toSet());
+            // 同时检查 IPv4 和 IPv6 监听表，再用 inode 与进程 fd 做归属关联。
             return procTcpContainsListener(Path.of("/proc/net/tcp"), port, socketInodes)
                     || procTcpContainsListener(Path.of("/proc/net/tcp6"), port, socketInodes);
         } catch (Exception ignored) {
@@ -69,10 +76,16 @@ final class ProcessSupport {
         try {
             for (String line : Files.readAllLines(tcpFile, StandardCharsets.US_ASCII)) {
                 String[] fields = line.trim().split("\\s+");
-                if (fields.length < 10 || !"0A".equals(fields[3])) continue;
+                // 第 4 列的 0A 表示 TCP_LISTEN；标题行及其它连接状态直接跳过。
+                if (fields.length < 10 || !"0A".equals(fields[3])) {
+                    continue;
+                }
                 int colon = fields[1].lastIndexOf(':');
+                // 本地端口在 procfs 中是十六进制，第 10 列是对应的 socket inode。
                 if (colon >= 0 && Integer.parseInt(fields[1].substring(colon + 1), 16) == port
-                        && socketInodes.contains(fields[9])) return true;
+                        && socketInodes.contains(fields[9])) {
+                    return true;
+                }
             }
         } catch (Exception ignored) {
         }
@@ -80,6 +93,7 @@ final class ProcessSupport {
     }
 
     private static boolean isListeningOnTcpPortWindows(long pid, int port) {
+        // Get-NetTCPConnection 会直接返回 OwningProcess，避免仅凭配置推测端口属于哪个实例。
         String script = "$c = Get-NetTCPConnection -State Listen -LocalPort " + port
                 + " -ErrorAction SilentlyContinue | Where-Object OwningProcess -eq " + pid
                 + "; if ($null -ne $c) { [Console]::Out.Write('true') }";
@@ -89,6 +103,7 @@ final class ProcessSupport {
         try {
             Process powershell = builder.start();
             if (!powershell.waitFor(3, TimeUnit.SECONDS)) {
+                // 系统查询异常时及时回收 PowerShell，避免 status 长时间阻塞。
                 powershell.destroyForcibly();
                 return false;
             }
