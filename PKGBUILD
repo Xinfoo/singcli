@@ -6,7 +6,7 @@ pkgdesc='A lightweight command-line helper for sing-box'
 arch=('any')
 url='https://github.com/Xinfoo/singcli'
 license=('MIT')
-depends=('java-runtime>=17' '')
+depends=('java-runtime>=17' 'sing-box')
 makedepends=('python' 'java-environment')
 source=()
 sha256sums=()
