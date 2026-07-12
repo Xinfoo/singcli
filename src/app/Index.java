@@ -1,37 +1,44 @@
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 // 交互式首页菜单：让用户选择获取配置、启动、停止或切换节点。
 class Index {
     static int run(String[] args) {
-        // 从标准输入读取用户选择，使用 UTF-8 兼容中文环境。
-        Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
-
-        // 展示菜单后读取一行；空输入等同于退出。
-        printMenu();
-        System.out.print("Select an action, or press Enter to exit: ");
-        String choice = scanner.nextLine().trim();
-
-        // 用户明确选择 0 或直接回车时正常结束。
-        if (choice.isEmpty() || "0".equals(choice)) {
-            System.out.println("Exited.");
-            return 0;
-        }
-
-        // 根据菜单编号转发到对应模块；无效编号以失败状态退出。
-        return switch (choice) {
-            case "1" -> ConfigGet.run(args);
-            case "2" -> StartSingBox.run(args);
-            case "3" -> StopSingBox.run(args);
-            case "4" -> NodeSwitcher.run(args);
-            case "5" -> SetSystemProxy.run(args);
-            case "6" -> UnsetSystemProxy.run(args);
-            case "7" -> StatusSingBox.run(args);
-            default -> {
-                System.err.println("Invalid action: " + choice);
-                yield 1;
+        // 首页和各个命令共用同一个 Scanner，命令返回后仍可继续读取输入。
+        Scanner scanner = InputSupport.scanner();
+        while (true) {
+            printMenu();
+            System.out.print("Select an action: ");
+            if (!scanner.hasNextLine()) {
+                return 0;
             }
-        };
+            String choice = scanner.nextLine().trim();
+
+            // 首页输入 0 时可以直接退出；空输入按无效选项处理并进入返回提示。
+            if ("0".equals(choice)) {
+                System.out.println("Exited.");
+                return 0;
+            }
+
+            // 命令的退出码只表示本次操作结果，交互模式仍然回到统一的后续选择提示。
+            switch (choice) {
+                case "1" -> ConfigGet.run(args);
+                case "2" -> StartSingBox.run(args);
+                case "3" -> StopSingBox.run(args);
+                case "4" -> NodeSwitcher.run(args);
+                case "5" -> SetSystemProxy.run(args);
+                case "6" -> UnsetSystemProxy.run(args);
+                case "7" -> StatusSingBox.run(args);
+                default -> System.err.println("Invalid action: " + choice);
+            }
+
+            System.out.println();
+            System.out.print("Enter 0 to exit, or enter anything else to return to Index: ");
+            if (!scanner.hasNextLine() || "0".equals(scanner.nextLine().trim())) {
+                System.out.println("Exited.");
+                return 0;
+            }
+            System.out.println();
+        }
     }
 
     // 打印首页菜单内容。

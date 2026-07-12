@@ -13,7 +13,8 @@ class ConfigGet {
 
     static int run(String[] args) {
         // 读取用户输入的订阅或配置地址，并把下载、规范化、写文件放在同一个错误处理块中。
-        try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
+        try {
+            Scanner scanner = InputSupport.scanner();
             System.out.print("Enter the config URL: ");
             String url = scanner.nextLine().trim();
             // URL 为空时没有可下载对象，直接作为参数错误处理。

@@ -16,7 +16,8 @@ class StartSingBox {
 
     static int run(String[] args) {
         // 主流程统一放在 try 块中，任何启动失败都会打印错误并以非零状态退出。
-        try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
+        try {
+            Scanner scanner = InputSupport.scanner();
             // 启动前先查找已有 sing-box 进程，避免多个进程同时占用端口或使用不同配置。
             List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
             if (!running.isEmpty()) {

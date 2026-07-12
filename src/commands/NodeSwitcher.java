@@ -17,7 +17,8 @@ class NodeSwitcher {
 
     static int run(String[] args) {
         // 主流程统一放在 try 块中，失败时打印原因并返回非零退出码。
-        try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
+        try {
+            Scanner scanner = InputSupport.scanner();
             // 没有配置文件时无法知道 Clash API 和 selector 信息。
             if (!Files.exists(CONFIG_PATH)) {
                 throw new IllegalArgumentException("config.json was not found: " + CONFIG_PATH.toAbsolutePath().normalize() + ". Generate the config first");

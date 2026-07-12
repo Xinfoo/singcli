@@ -1,4 +1,3 @@
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
@@ -7,7 +6,8 @@ import java.util.Scanner;
 class StopSingBox {
     static int run(String[] args) {
         // 停止流程统一处理异常，失败时以非零状态退出。
-        try (Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8)) {
+        try {
+            Scanner scanner = InputSupport.scanner();
             // 先搜索所有疑似 sing-box 的进程。
             List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
             if (running.isEmpty()) {
