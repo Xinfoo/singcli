@@ -26,6 +26,7 @@ class Index {
             case "4" -> NodeSwitcher.run(args);
             case "5" -> SetSystemProxy.run(args);
             case "6" -> UnsetSystemProxy.run(args);
+            case "7" -> StatusSingBox.run(args);
             default -> {
                 System.err.println("Invalid action: " + choice);
                 yield 1;
@@ -43,6 +44,7 @@ class Index {
         System.out.println("4. Switch node");
         System.out.println("5. Set Windows system proxy");
         System.out.println("6. Unset Windows system proxy");
+        System.out.println("7. Show sing-box status");
         System.out.println();
     }
 }

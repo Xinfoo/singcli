@@ -1,4 +1,5 @@
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,64 @@ final class ProcessSupport {
     // 通过 os.name 判断当前运行系统是否为 Windows。
     static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win");
+    }
+
+    // 判断指定进程是否正在监听 TCP 端口。用于从多个 sing-box 中定位 Clash API 实例。
+    static boolean isListeningOnTcpPort(ProcessHandle process, int port) {
+        return isWindows()
+                ? isListeningOnTcpPortWindows(process.pid(), port)
+                : isListeningOnTcpPortProc(process.pid(), port);
+    }
+
+    private static boolean isListeningOnTcpPortProc(long pid, int port) {
+        Path fdDirectory = Path.of("/proc", Long.toString(pid), "fd");
+        try (var entries = Files.list(fdDirectory)) {
+            var socketInodes = entries.map(path -> {
+                        try { return Files.readSymbolicLink(path).toString(); }
+                        catch (Exception ignored) { return ""; }
+                    })
+                    .filter(value -> value.startsWith("socket:[") && value.endsWith("]"))
+                    .map(value -> value.substring(8, value.length() - 1))
+                    .collect(java.util.stream.Collectors.toSet());
+            return procTcpContainsListener(Path.of("/proc/net/tcp"), port, socketInodes)
+                    || procTcpContainsListener(Path.of("/proc/net/tcp6"), port, socketInodes);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean procTcpContainsListener(Path tcpFile, int port, java.util.Set<String> socketInodes) {
+        try {
+            for (String line : Files.readAllLines(tcpFile, StandardCharsets.US_ASCII)) {
+                String[] fields = line.trim().split("\\s+");
+                if (fields.length < 10 || !"0A".equals(fields[3])) continue;
+                int colon = fields[1].lastIndexOf(':');
+                if (colon >= 0 && Integer.parseInt(fields[1].substring(colon + 1), 16) == port
+                        && socketInodes.contains(fields[9])) return true;
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    private static boolean isListeningOnTcpPortWindows(long pid, int port) {
+        String script = "$c = Get-NetTCPConnection -State Listen -LocalPort " + port
+                + " -ErrorAction SilentlyContinue | Where-Object OwningProcess -eq " + pid
+                + "; if ($null -ne $c) { [Console]::Out.Write('true') }";
+        ProcessBuilder builder = new ProcessBuilder("powershell.exe", "-NoProfile", "-NonInteractive",
+                "-ExecutionPolicy", "Bypass", "-Command", script);
+        builder.redirectErrorStream(true);
+        try {
+            Process powershell = builder.start();
+            if (!powershell.waitFor(3, TimeUnit.SECONDS)) {
+                powershell.destroyForcibly();
+                return false;
+            }
+            return powershell.exitValue() == 0 && "true".equalsIgnoreCase(new String(
+                    powershell.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim());
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     // 从进程启动参数中提取配置路径；相对路径会尝试按进程工作目录解析。

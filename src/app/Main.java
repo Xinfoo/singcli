@@ -21,6 +21,7 @@ public class Main {
             case "get" -> ConfigGet.run(new String[0]);
             case "start" -> StartSingBox.run(new String[0]);
             case "stop" -> StopSingBox.run(new String[0]);
+            case "status" -> StatusSingBox.run(new String[0]);
             case "switch" -> NodeSwitcher.run(new String[0]);
             case "set" -> SetSystemProxy.run(new String[0]);
             case "unset" -> UnsetSystemProxy.run(new String[0]);
@@ -43,6 +44,7 @@ public class Main {
         System.out.println("  get      Fetch config and generate config.json");
         System.out.println("  start    Start sing-box");
         System.out.println("  stop     Stop sing-box");
+        System.out.println("  status   Show sing-box process and current node");
         System.out.println("  switch   Switch node");
         System.out.println("  set      Set Windows system proxy");
         System.out.println("  unset    Unset Windows system proxy");

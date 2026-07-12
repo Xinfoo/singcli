@@ -150,6 +150,7 @@ java -jar singcli.jar [command]
 get      获取配置并生成 config.json
 start    启动 sing-box
 stop     停止 sing-box
+status   显示 sing-box 进程状态和当前节点
 switch   切换节点
 set      设置 Windows 系统代理
 unset    取消 Windows 系统代理
@@ -228,6 +229,14 @@ java -jar singcli.jar unset
 ```bash
 java -jar singcli.jar stop
 ```
+
+查看运行状态和当前节点：
+
+```bash
+java -jar singcli.jar status
+```
+
+如果同时检测到多个 `sing-box` 进程，`status` 只显示实际监听 Clash API 9090 端口的进程。
 
 ## 注意事项
 
