@@ -1,6 +1,6 @@
 # Maintainer: Xinfoo
 pkgname=singcli
-pkgver=0.6
+pkgver=1.0
 pkgrel=1
 pkgdesc='A lightweight command-line helper for sing-box'
 arch=('any')

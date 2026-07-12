@@ -21,7 +21,7 @@ public class Main {
             case "get" -> ConfigGet.run(new String[0]);
             case "start" -> StartSingBox.run(new String[0]);
             case "stop" -> StopSingBox.run(new String[0]);
-            case "status" -> StatusSingBox.run(new String[0]);
+            case "status" -> StatusSingBox.runDirect(new String[0]);
             case "switch" -> NodeSwitcher.run(new String[0]);
             case "set" -> SetSystemProxy.run(new String[0]);
             case "unset" -> UnsetSystemProxy.run(new String[0]);

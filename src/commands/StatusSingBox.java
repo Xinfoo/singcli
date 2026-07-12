@@ -8,12 +8,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Scanner;
 
 // 显示由 Clash API 9090 管理的 sing-box 进程及其 selector 当前节点。
 class StatusSingBox {
     // singcli 生成配置时固定启用该 Clash API 端口，多进程场景据此识别受管理的实例。
     private static final int CLASH_API_PORT = 9090;
 
+    // 命令行直接执行 singcli status 时，在结果显示后等待用户按 Enter 再退出。
+    static int runDirect(String[] args) {
+        int exitCode = run(args);
+        waitForEnter();
+        return exitCode;
+    }
+
+    // 执行状态查询本身；Index 调用此方法，后续交互由 Index 统一处理。
     static int run(String[] args) {
         try {
             // status 是只读操作：没有进程时直接报告状态，不作为命令执行失败处理。
@@ -45,6 +54,16 @@ class StatusSingBox {
         } catch (Exception e) {
             System.err.println("Status failed: " + ProcessSupport.errorMessage(e));
             return 1;
+        }
+    }
+
+    private static void waitForEnter() {
+        Scanner scanner = InputSupport.scanner();
+        System.out.println();
+        System.out.print("Press Enter to exit...");
+        // 输入被重定向且已经到达 EOF 时直接结束，避免抛出 NoSuchElementException。
+        if (scanner.hasNextLine()) {
+            scanner.nextLine();
         }
     }
 
