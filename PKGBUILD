@@ -1,12 +1,12 @@
 # Maintainer: Xinfoo
 pkgname=singcli
 pkgver=0.4
-pkgrel=1
+pkgrel=2
 pkgdesc='A lightweight command-line helper for sing-box'
 arch=('any')
 url='https://github.com/Xinfoo/singcli'
 license=('MIT')
-depends=('java-runtime>=17')
+depends=('java-runtime>=17' '')
 makedepends=('python' 'java-environment')
 source=()
 sha256sums=()
