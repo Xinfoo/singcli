@@ -1,14 +1,14 @@
-package support;
+package json;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // 在 JSON 对象顶层定位、读取、替换和添加字段。
-final class JsonObjectSupport {
+public final class JsonObjectSupport {
     private JsonObjectSupport() {
     }
 
-    static FieldLocation findField(String objectJson, String field) {
+    public static FieldLocation findField(String objectJson, String field) {
         int objectStart = JsonSyntaxSupport.skipWhitespace(objectJson, 0);
         if (objectStart >= objectJson.length() || objectJson.charAt(objectStart) != '{') {
             return null;
@@ -46,7 +46,7 @@ final class JsonObjectSupport {
         return null;
     }
 
-    static String replaceOrAddField(String objectJson, String field, String value, String indent) {
+    public static String replaceOrAddField(String objectJson, String field, String value, String indent) {
         FieldLocation location = findField(objectJson, field);
         if (location == null) {
             return addField(objectJson, field, value, indent);
@@ -56,7 +56,7 @@ final class JsonObjectSupport {
                 + objectJson.substring(location.valueEnd() + 1);
     }
 
-    static String addField(String objectJson, String field, String value, String indent) {
+    public static String addField(String objectJson, String field, String value, String indent) {
         int objectStart = JsonSyntaxSupport.skipWhitespace(objectJson, 0);
         if (objectStart >= objectJson.length() || objectJson.charAt(objectStart) != '{') {
             throw new IllegalArgumentException("Target is not a JSON object");
@@ -68,7 +68,7 @@ final class JsonObjectSupport {
         return objectJson.substring(0, objectEnd) + insertion + objectJson.substring(objectEnd);
     }
 
-    static List<String> stringArrayField(String objectJson, String field) {
+    public static List<String> stringArrayField(String objectJson, String field) {
         FieldLocation location = findField(objectJson, field);
         if (location == null || objectJson.charAt(location.valueStart()) != '[') {
             return List.of();
@@ -90,7 +90,7 @@ final class JsonObjectSupport {
         return values;
     }
 
-    static String stringField(String objectJson, String field, String fallback) {
+    public static String stringField(String objectJson, String field, String fallback) {
         FieldLocation location = findField(objectJson, field);
         if (location == null || objectJson.charAt(location.valueStart()) != '"') {
             return fallback;
@@ -98,7 +98,7 @@ final class JsonObjectSupport {
         return JsonSyntaxSupport.parseString(objectJson, location.valueStart()).value();
     }
 
-    static int intField(String objectJson, String field, int fallback) {
+    public static int intField(String objectJson, String field, int fallback) {
         FieldLocation location = findField(objectJson, field);
         if (location == null || location.valueStart() > location.valueEnd()) {
             return fallback;
@@ -111,6 +111,6 @@ final class JsonObjectSupport {
         }
     }
 
-    record FieldLocation(int valueStart, int valueEnd) {
+    public record FieldLocation(int valueStart, int valueEnd) {
     }
 }

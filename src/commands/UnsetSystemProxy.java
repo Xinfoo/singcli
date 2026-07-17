@@ -1,6 +1,6 @@
 package commands;
 
-import support.ProcessSupport;
+import process.ProcessSupport;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

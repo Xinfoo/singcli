@@ -1,4 +1,6 @@
-package support;
+package platform;
+
+import process.ProcessSupport;
 
 import java.net.URISyntaxException;
 import java.nio.file.Files;

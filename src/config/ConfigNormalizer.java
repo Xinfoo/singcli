@@ -1,4 +1,6 @@
-package support;
+package config;
+
+import json.JsonObjectSupport;
 
 // 把下载的 sing-box 配置调整为 singcli 所需的入站和 Clash API 结构。
 final class ConfigNormalizer {

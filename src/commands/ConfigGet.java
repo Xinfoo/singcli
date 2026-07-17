@@ -1,8 +1,8 @@
 package commands;
 
-import support.AppPathsSupport;
-import support.ConfigSupport;
-import support.InputSupport;
+import app.InputSupport;
+import config.ConfigSupport;
+import platform.AppPathsSupport;
 
 import java.io.InputStream;
 import java.net.URI;

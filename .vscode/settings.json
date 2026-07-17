@@ -1,5 +1,5 @@
 {
-    // src 是统一的 source root，其子目录与 app、commands、support 包一一对应。
+    // src 是统一的 source root，其子目录与各 Java 包一一对应。
     "java.project.sourcePaths": [
         "src"
     ],

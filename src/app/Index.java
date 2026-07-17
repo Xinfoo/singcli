@@ -7,8 +7,6 @@ import commands.StartSingBox;
 import commands.StatusSingBox;
 import commands.StopSingBox;
 import commands.UnsetSystemProxy;
-import support.InputSupport;
-
 import java.util.Scanner;
 
 // 交互式首页菜单：让用户选择获取配置、启动、停止或切换节点。

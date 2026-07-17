@@ -1,8 +1,8 @@
 package commands;
 
-import support.AppPathsSupport;
-import support.InputSupport;
-import support.ProcessSupport;
+import app.InputSupport;
+import platform.AppPathsSupport;
+import process.ProcessSupport;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,9 +1,9 @@
 package commands;
 
-import support.AppPathsSupport;
-import support.ConfigSupport;
-import support.InputSupport;
-import support.ProcessSupport;
+import app.InputSupport;
+import config.ConfigSupport;
+import platform.AppPathsSupport;
+import process.ProcessSupport;
 
 import java.net.URI;
 import java.net.URLEncoder;

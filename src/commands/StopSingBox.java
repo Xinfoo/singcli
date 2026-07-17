@@ -1,7 +1,7 @@
 package commands;
 
-import support.InputSupport;
-import support.ProcessSupport;
+import app.InputSupport;
+import process.ProcessSupport;
 
 import java.util.List;
 import java.util.Locale;

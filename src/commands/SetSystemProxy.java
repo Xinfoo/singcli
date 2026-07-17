@@ -1,8 +1,8 @@
 package commands;
 
-import support.AppPathsSupport;
-import support.ConfigSupport;
-import support.ProcessSupport;
+import config.ConfigSupport;
+import platform.AppPathsSupport;
+import process.ProcessSupport;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

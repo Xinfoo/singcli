@@ -1,4 +1,7 @@
-package support;
+package config;
+
+import json.JsonObjectSupport;
+import json.JsonSyntaxSupport;
 
 import java.util.List;
 

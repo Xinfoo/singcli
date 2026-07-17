@@ -1,14 +1,14 @@
-package support;
+package json;
 
 import java.util.ArrayList;
 import java.util.List;
 
 // 处理 JSON 文本的字符串转义、容器边界和数组对象元素。
-final class JsonSyntaxSupport {
+public final class JsonSyntaxSupport {
     private JsonSyntaxSupport() {
     }
 
-    static int skipWhitespace(String text, int start) {
+    public static int skipWhitespace(String text, int start) {
         int i = start;
         while (i < text.length() && Character.isWhitespace(text.charAt(i))) {
             i++;
@@ -16,7 +16,7 @@ final class JsonSyntaxSupport {
         return i;
     }
 
-    static int findValueEnd(String json, int valueStart) {
+    public static int findValueEnd(String json, int valueStart) {
         if (valueStart >= json.length()) {
             throw new IllegalArgumentException("Field value is empty");
         }
@@ -36,11 +36,11 @@ final class JsonSyntaxSupport {
         return i - 1;
     }
 
-    static int findMatchingArrayEnd(String json, int arrayStart) {
+    public static int findMatchingArrayEnd(String json, int arrayStart) {
         return findMatchingEnd(json, arrayStart, '[', ']', "JSON array is not properly closed");
     }
 
-    static int findMatchingObjectEnd(String json, int objectStart) {
+    public static int findMatchingObjectEnd(String json, int objectStart) {
         return findMatchingEnd(json, objectStart, '{', '}', "JSON object is not properly closed");
     }
 
@@ -59,7 +59,7 @@ final class JsonSyntaxSupport {
         throw new IllegalArgumentException(error);
     }
 
-    static List<String> objectElements(String arrayJson) {
+    public static List<String> objectElements(String arrayJson) {
         List<String> objects = new ArrayList<>();
         int arrayStart = skipWhitespace(arrayJson, 0);
         if (arrayStart >= arrayJson.length() || arrayJson.charAt(arrayStart) != '[') {
@@ -80,7 +80,7 @@ final class JsonSyntaxSupport {
         return objects;
     }
 
-    static ParsedString parseString(String json, int quoteStart) {
+    public static ParsedString parseString(String json, int quoteStart) {
         StringBuilder value = new StringBuilder();
         for (int i = quoteStart + 1; i < json.length(); i++) {
             char ch = json.charAt(i);
@@ -120,7 +120,7 @@ final class JsonSyntaxSupport {
         throw new IllegalArgumentException("JSON string is not properly closed");
     }
 
-    static String escapeString(String value) {
+    public static String escapeString(String value) {
         StringBuilder escaped = new StringBuilder();
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -144,6 +144,6 @@ final class JsonSyntaxSupport {
         return escaped.toString();
     }
 
-    record ParsedString(String value, int end) {
+    public record ParsedString(String value, int end) {
     }
 }
