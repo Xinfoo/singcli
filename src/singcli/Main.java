@@ -39,7 +39,7 @@ public class Main {
             case "set" -> SetSystemProxy.run(new String[0]);
             case "unset" -> UnsetSystemProxy.run(new String[0]);
             case "version" -> Version.run(new String[0]);
-            case "help", "-h", "--help" -> {
+            case "help" -> {
                 printUsage();
                 yield 0;
             }

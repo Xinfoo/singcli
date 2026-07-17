@@ -15,9 +15,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 
-public class StartSingBox {
+public final class StartSingBox {
     // start 命令固定读取平台配置目录下的 config.json。
     private static final Path CONFIG_PATH = AppPaths.configPath();
+
+    private StartSingBox() {
+    }
 
     public static int run(String[] args) {
         // 主流程统一放在 try 块中，任何启动失败都会打印错误并以非零状态退出。

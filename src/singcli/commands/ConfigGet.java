@@ -13,9 +13,12 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Scanner;
 
-public class ConfigGet {
+public final class ConfigGet {
     // 配置文件不再写入当前工作目录，而是写入 AppPaths 计算出的平台配置目录。
     private static final Path CONFIG_PATH = AppPaths.configPath();
+
+    private ConfigGet() {
+    }
 
     public static int run(String[] args) {
         // 读取用户输入的订阅或配置地址，并把下载、规范化、写文件放在同一个错误处理块中。

@@ -18,9 +18,12 @@ import java.util.List;
 import java.util.Scanner;
 
 // 显示由 Clash API 9090 管理的 sing-box 进程及其 selector 当前节点。
-public class StatusSingBox {
+public final class StatusSingBox {
     // singcli 生成配置时固定启用该 Clash API 端口，多进程场景据此识别受管理的实例。
     private static final int CLASH_API_PORT = 9090;
+
+    private StatusSingBox() {
+    }
 
     // 命令行直接执行 singcli status 时，在结果显示后等待用户按 Enter 再退出。
     public static int runDirect(String[] args) {

@@ -10,8 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 // Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
-public class SetSystemProxy {
+public final class SetSystemProxy {
     private static final Path CONFIG_PATH = AppPaths.configPath();
+
+    private SetSystemProxy() {
+    }
 
     public static int run(String[] args) {
         if (!SingBoxProcessManager.isWindows()) {

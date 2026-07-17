@@ -4,7 +4,10 @@ import singcli.platform.ElevatedPowerShell;
 import singcli.process.SingBoxProcessManager;
 
 // Windows 系统代理取消命令：关闭当前用户系统代理并清理自动配置 URL。
-public class UnsetSystemProxy {
+public final class UnsetSystemProxy {
+    private UnsetSystemProxy() {
+    }
+
     public static int run(String[] args) {
         if (!SingBoxProcessManager.isWindows()) {
             System.err.println("Unset system proxy is only supported on Windows.");
