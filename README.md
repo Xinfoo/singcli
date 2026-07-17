@@ -117,6 +117,7 @@ status   显示 sing-box 进程状态和当前节点
 switch   切换节点
 set      设置 Windows 系统代理
 unset    取消 Windows 系统代理
+version  显示 singcli 版本号和构建信息
 help     显示帮助信息
 ```
 
@@ -197,6 +198,12 @@ java -jar singcli.jar stop
 
 ```bash
 java -jar singcli.jar status
+```
+
+查看 singcli 版本号、构建时间和构建 JDK：
+
+```bash
+java -jar singcli.jar version
 ```
 
 如果同时检测到多个 `sing-box` 进程，`status` 只显示实际监听 Clash API 9090 端口的进程。
