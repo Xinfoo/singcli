@@ -11,7 +11,7 @@
 #define MyAppUrl "https://github.com/Xinfoo/singcli"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.2.3-alpha1"
+  #define MyAppVersion "1.2.3"
 #endif
 
 #define ProjectRoot AddBackslash(SourcePath) + "..\.."
@@ -44,7 +44,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog commandline
 ChangesEnvironment=yes
-UninstallDisplayName=singcli
+UninstallDisplayName=Singcli
+UninstallDisplayIcon={sys}\cmd.exe
 UsePreviousSetupType=no
 
 [Types]
