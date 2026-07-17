@@ -41,16 +41,17 @@ public class SetSystemProxy {
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $path = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings'
-New-Item -Path $path -Force | Out-Null
-Remove-ItemProperty -Path $path -Name 'ProxyServer' -ErrorAction SilentlyContinue
-Remove-ItemProperty -Path $path -Name 'ProxyOverride' -ErrorAction SilentlyContinue
-Remove-ItemProperty -Path $path -Name 'AutoDetect' -ErrorAction SilentlyContinue
-Remove-ItemProperty -Path $path -Name 'AutoConfigURL' -ErrorAction SilentlyContinue
-Remove-ItemProperty -Path $path -Name 'ProxyEnable' -ErrorAction SilentlyContinue
-New-ItemProperty -Path $path -Name 'ProxyServer' -Value '%s' -PropertyType String | Out-Null
-New-ItemProperty -Path $path -Name 'ProxyOverride' -Value '<local>' -PropertyType String | Out-Null
-New-ItemProperty -Path $path -Name 'AutoDetect' -Value 0 -PropertyType DWord | Out-Null
-New-ItemProperty -Path $path -Name 'ProxyEnable' -Value 1 -PropertyType DWord | Out-Null
+if (-not (Test-Path -LiteralPath $path)) {
+    New-Item -Path $path | Out-Null
+}
+New-ItemProperty -LiteralPath $path -Name 'ProxyServer' -Value '%s' -PropertyType String -Force | Out-Null
+New-ItemProperty -LiteralPath $path -Name 'ProxyOverride' -Value '<local>' -PropertyType String -Force | Out-Null
+New-ItemProperty -LiteralPath $path -Name 'AutoDetect' -Value 0 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -LiteralPath $path -Name 'ProxyEnable' -Value 1 -PropertyType DWord -Force | Out-Null
+$autoConfigUrl = Get-ItemProperty -LiteralPath $path -Name 'AutoConfigURL' -ErrorAction SilentlyContinue
+if ($null -ne $autoConfigUrl) {
+    Remove-ItemProperty -LiteralPath $path -Name 'AutoConfigURL'
+}
 $signature = @'
 using System;
 using System.Runtime.InteropServices;

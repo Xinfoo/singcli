@@ -27,13 +27,14 @@ public class UnsetSystemProxy {
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $path = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings'
-New-Item -Path $path -Force | Out-Null
-Remove-ItemProperty -Path $path -Name 'ProxyEnable' -ErrorAction SilentlyContinue
-New-ItemProperty -Path $path -Name 'ProxyEnable' -Value 0 -PropertyType DWord | Out-Null
-Remove-ItemProperty -Path $path -Name 'AutoDetect' -ErrorAction SilentlyContinue
-New-ItemProperty -Path $path -Name 'AutoDetect' -Value 0 -PropertyType DWord | Out-Null
-if ($null -ne (Get-ItemProperty -Path $path -Name 'AutoConfigURL' -ErrorAction SilentlyContinue)) {
-    Remove-ItemProperty -Path $path -Name 'AutoConfigURL' -ErrorAction SilentlyContinue
+if (-not (Test-Path -LiteralPath $path)) {
+    New-Item -Path $path | Out-Null
+}
+New-ItemProperty -LiteralPath $path -Name 'ProxyEnable' -Value 0 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -LiteralPath $path -Name 'AutoDetect' -Value 0 -PropertyType DWord -Force | Out-Null
+$autoConfigUrl = Get-ItemProperty -LiteralPath $path -Name 'AutoConfigURL' -ErrorAction SilentlyContinue
+if ($null -ne $autoConfigUrl) {
+    Remove-ItemProperty -LiteralPath $path -Name 'AutoConfigURL'
 }
 $signature = @'
 using System;
