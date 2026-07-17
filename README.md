@@ -112,9 +112,9 @@ java -jar singcli.jar [command]
 ```text
 get      获取配置并生成 config.json
 start    启动 sing-box
-stop     停止 sing-box
 status   显示 sing-box 进程状态和当前节点
 switch   切换节点
+stop     停止 sing-box
 set      设置 Windows 系统代理
 unset    取消 Windows 系统代理
 version  显示 singcli 版本号和构建信息
@@ -170,10 +170,22 @@ java -jar singcli.jar get
 java -jar singcli.jar start
 ```
 
+查看运行状态和当前节点：
+
+```bash
+java -jar singcli.jar status
+```
+
 切换节点：
 
 ```bash
 java -jar singcli.jar switch
+```
+
+停止 `sing-box`：
+
+```bash
+java -jar singcli.jar stop
 ```
 
 设置 Windows 系统代理：
@@ -186,18 +198,6 @@ java -jar singcli.jar set
 
 ```bash
 java -jar singcli.jar unset
-```
-
-停止 `sing-box`：
-
-```bash
-java -jar singcli.jar stop
-```
-
-查看运行状态和当前节点：
-
-```bash
-java -jar singcli.jar status
 ```
 
 查看 singcli 版本号、构建时间和构建 JDK：

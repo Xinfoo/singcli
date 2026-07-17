@@ -33,11 +33,11 @@ public class Index {
             switch (choice) {
                 case "1" -> ConfigGet.run(args);
                 case "2" -> StartSingBox.run(args);
-                case "3" -> StopSingBox.run(args);
+                case "3" -> StatusSingBox.run(args);
                 case "4" -> NodeSwitcher.run(args);
-                case "5" -> SetSystemProxy.run(args);
-                case "6" -> UnsetSystemProxy.run(args);
-                case "7" -> StatusSingBox.run(args);
+                case "5" -> StopSingBox.run(args);
+                case "6" -> SetSystemProxy.run(args);
+                case "7" -> UnsetSystemProxy.run(args);
                 case "8" -> Version.run(args);
                 default -> System.err.println("Invalid action: " + choice);
             }
@@ -58,11 +58,11 @@ public class Index {
         System.out.println("0. Exit");
         System.out.println("1. Fetch config and generate config.json");
         System.out.println("2. Start sing-box");
-        System.out.println("3. Stop sing-box");
+        System.out.println("3. Show sing-box status");
         System.out.println("4. Switch node");
-        System.out.println("5. Set Windows system proxy");
-        System.out.println("6. Unset Windows system proxy");
-        System.out.println("7. Show sing-box status");
+        System.out.println("5. Stop sing-box");
+        System.out.println("6. Set Windows system proxy");
+        System.out.println("7. Unset Windows system proxy");
         System.out.println("8. Show version and build information");
         System.out.println();
     }

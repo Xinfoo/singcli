@@ -7,5 +7,6 @@
     "java.project.referencedLibraries": [],
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.debug.settings.console": "integratedTerminal"
+    "java.debug.settings.console": "integratedTerminal",
+    "java.debug.settings.onBuildFailureProceed": true
 }
