@@ -25,7 +25,13 @@ def main() -> int:
     CLASSES_DIR.mkdir(parents=True, exist_ok=True)
     DIST_DIR.mkdir(parents=True, exist_ok=True)
 
-    run(["javac", "-encoding", "UTF-8", "-d", str(CLASSES_DIR), *map(str, sources)])
+    run([
+        "javac",
+        "--release", "17",
+        "-encoding", "UTF-8",
+        "-d", str(CLASSES_DIR),
+        *map(str, sources),
+    ])
     write_manifest()
     run(["jar", "cfm", str(JAR_PATH), str(MANIFEST_PATH), "-C", str(CLASSES_DIR), "."])
 
