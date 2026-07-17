@@ -8,9 +8,10 @@ import singcli.commands.StatusSingBox;
 import singcli.commands.StopSingBox;
 import singcli.commands.UnsetSystemProxy;
 import singcli.commands.Version;
+
 import java.util.Scanner;
 
-// 交互式首页菜单：让用户选择获取配置、启动、停止或切换节点。
+// 交互式首页菜单：集中提供配置、sing-box、系统代理和版本信息相关操作入口。
 public class Index {
     public static int run(String[] args) {
         // 首页和各个命令共用同一个 Scanner，命令返回后仍可继续读取输入。
