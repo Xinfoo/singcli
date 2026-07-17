@@ -56,12 +56,8 @@ python scripts\build\build.py
 ISCC.exe scripts\build\windows-installer.iss
 ```
 
-生成的安装器位于 `dist\windows`。如果需要把 `sing-box.exe` 及其同目录 DLL
-一起打包，通过 `SingBoxDir` 指定对应目录：
-
-```powershell
-ISCC.exe /DSingBoxDir="C:\path\to\sing-box" scripts\build\windows-installer.iss
-```
+生成的安装器位于 `dist\windows`。如果项目根目录的 `sing-box` 目录中存在
+`sing-box.exe`，安装器会自动包含它及同目录的 DLL；不存在时只打包 singcli。
 
 安装器支持管理员或当前用户安装、可选添加 PATH，并会在卸载时清理对应 PATH。
 

@@ -1,9 +1,8 @@
-; Build without sing-box:
+; Build the installer:
 ;   ISCC.exe scripts\build\windows-installer.iss
 ;
-; Build with sing-box.exe and DLL files from the same directory:
-;   ISCC.exe /DSingBoxDir="C:\path\to\sing-box" scripts\build\windows-installer.iss
-;
+; If sing-box\sing-box.exe exists under the project root, the installer includes
+; it and the DLL files from the same directory. Otherwise it builds singcli only.
 ; Override the package version with /DMyAppVersion=1.1.
 
 #define MyAppName "singcli"
@@ -14,11 +13,10 @@
   #define MyAppVersion "1.1"
 #endif
 
-#ifndef SingBoxDir
-  #define SingBoxDir ""
-#endif
-
 #define ProjectRoot AddBackslash(SourcePath) + "..\.."
+#define SingBoxDir ProjectRoot + "\sing-box"
+#define SingBoxExe SingBoxDir + "\sing-box.exe"
+#define IncludeSingBox FileExists(SingBoxExe)
 
 [Setup]
 AppId=singcli
@@ -42,16 +40,23 @@ PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog commandline
 ChangesEnvironment=yes
 UninstallDisplayName=singcli
+UsePreviousComponents=no
+UsePreviousSetupType=no
 
 [Types]
-Name: "compact"; Description: "singcli"
+#if IncludeSingBox
 Name: "full"; Description: "Full installation"
+#else
+Name: "compact"; Description: "singcli"
+#endif
 Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [Components]
-Name: "core"; Description: "singcli command-line application"; Types: compact full custom; Flags: fixed
-#if SingBoxDir != ""
+#if IncludeSingBox
+Name: "core"; Description: "singcli command-line application"; Types: full custom; Flags: fixed
 Name: "singbox"; Description: "Bundled sing-box executable"; Types: full
+#else
+Name: "core"; Description: "singcli command-line application"; Types: compact custom; Flags: fixed
 #endif
 
 [Tasks]
@@ -60,8 +65,8 @@ Name: "addtopath"; Description: "Add the installation directory to PATH"; Flags:
 [Files]
 Source: "{#ProjectRoot}\dist\singcli.jar"; DestDir: "{app}"; Components: core; Flags: ignoreversion
 Source: "{#ProjectRoot}\scripts\windows\singcli.cmd"; DestDir: "{app}"; Components: core; Flags: ignoreversion
-#if SingBoxDir != ""
-Source: "{#SingBoxDir}\sing-box.exe"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion
+#if IncludeSingBox
+Source: "{#SingBoxExe}"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion
 Source: "{#SingBoxDir}\*.dll"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion skipifsourcedoesntexist
 #endif
 
