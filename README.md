@@ -62,6 +62,7 @@ ISCC.exe scripts\build\windows-installer.iss
 `LICENSE-sing-box.txt` 区分两个项目的许可证。
 
 安装器支持管理员或当前用户安装、可选添加 PATH，并会在卸载时清理对应 PATH。
+Windows 安装包面向 AMD64，默认安装到 `C:\Program Files\singcli`。
 
 ## Windows 安装
 
