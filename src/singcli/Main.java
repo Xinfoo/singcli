@@ -9,6 +9,7 @@ import singcli.commands.StartSingBox;
 import singcli.commands.StatusSingBox;
 import singcli.commands.StopSingBox;
 import singcli.commands.UnsetSystemProxy;
+import singcli.commands.Version;
 
 // 程序总入口：根据命令行参数分发到不同功能模块。
 public class Main {
@@ -37,6 +38,7 @@ public class Main {
             case "switch" -> NodeSwitcher.run(new String[0]);
             case "set" -> SetSystemProxy.run(new String[0]);
             case "unset" -> UnsetSystemProxy.run(new String[0]);
+            case "version" -> Version.run(new String[0]);
             case "help", "-h", "--help" -> {
                 printUsage();
                 yield 0;
@@ -60,6 +62,7 @@ public class Main {
         System.out.println("  switch   Switch node");
         System.out.println("  set      Set Windows system proxy");
         System.out.println("  unset    Unset Windows system proxy");
+        System.out.println("  version  Show version and build information");
         System.out.println("  help     Show this help message");
         System.out.println();
         System.out.println("No command: open the interactive index menu.");

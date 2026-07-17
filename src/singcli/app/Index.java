@@ -7,6 +7,7 @@ import singcli.commands.StartSingBox;
 import singcli.commands.StatusSingBox;
 import singcli.commands.StopSingBox;
 import singcli.commands.UnsetSystemProxy;
+import singcli.commands.Version;
 import java.util.Scanner;
 
 // 交互式首页菜单：让用户选择获取配置、启动、停止或切换节点。
@@ -37,6 +38,7 @@ public class Index {
                 case "5" -> SetSystemProxy.run(args);
                 case "6" -> UnsetSystemProxy.run(args);
                 case "7" -> StatusSingBox.run(args);
+                case "8" -> Version.run(args);
                 default -> System.err.println("Invalid action: " + choice);
             }
 
@@ -61,6 +63,7 @@ public class Index {
         System.out.println("5. Set Windows system proxy");
         System.out.println("6. Unset Windows system proxy");
         System.out.println("7. Show sing-box status");
+        System.out.println("8. Show version and build information");
         System.out.println();
     }
 }

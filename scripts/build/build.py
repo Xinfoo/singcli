@@ -2,6 +2,7 @@
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -13,6 +14,7 @@ MANIFEST_PATH = BUILD_DIR / "MANIFEST.MF"
 DIST_DIR = ROOT / "dist"
 JAR_PATH = DIST_DIR / "singcli.jar"
 MAIN_CLASS = "singcli.Main"
+APP_VERSION = "1.2.3"
 
 
 def main() -> int:
@@ -46,10 +48,33 @@ def clean() -> None:
 
 
 def write_manifest() -> None:
+    build_time = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    build_jdk = command_output(["javac", "-version"], "unknown")
     MANIFEST_PATH.write_text(
-        f"Manifest-Version: 1.0\nMain-Class: {MAIN_CLASS}\n\n",
+        "Manifest-Version: 1.0\n"
+        f"Main-Class: {MAIN_CLASS}\n"
+        "Implementation-Title: singcli\n"
+        f"Implementation-Version: {APP_VERSION}\n"
+        f"Build-Time: {build_time}\n"
+        f"Build-Jdk: {build_jdk}\n\n",
         encoding="utf-8",
     )
+
+
+def command_output(command: list[str], default: str) -> str:
+    try:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return default
+
+    output = (result.stdout or result.stderr).strip()
+    return output if result.returncode == 0 and output else default
 
 
 def run(command: list[str]) -> None:
