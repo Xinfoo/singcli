@@ -21,7 +21,7 @@
 #define IncludeSingBox FileExists(SingBoxExe) && FileExists(SingBoxLicense)
 
 [Setup]
-AppId=singcli
+AppId={{88D7AA1E-2642-4FF1-A97A-DE6256E6B540}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
@@ -42,7 +42,6 @@ PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog commandline
 ChangesEnvironment=yes
 UninstallDisplayName=singcli
-UsePreviousComponents=no
 UsePreviousSetupType=no
 
 [Types]
