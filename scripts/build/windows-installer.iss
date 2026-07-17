@@ -1,22 +1,24 @@
 ; Build the installer:
 ;   ISCC.exe scripts\build\windows-installer.iss
 ;
-; If sing-box\sing-box.exe exists under the project root, the installer includes
-; it and the DLL files from the same directory. Otherwise it builds singcli only.
-; Override the package version with /DMyAppVersion=1.1.
+; If sing-box\sing-box.exe and sing-box\LICENSE both exist under the project
+; root, the installer includes them and the DLL files from the same directory.
+; Otherwise it builds singcli only.
+; Override the package version with /DMyAppVersion=1.2.2.
 
 #define MyAppName "singcli"
 #define MyAppPublisher "Xinfoo"
 #define MyAppUrl "https://github.com/Xinfoo/singcli"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.1"
+  #define MyAppVersion "1.2.2"
 #endif
 
 #define ProjectRoot AddBackslash(SourcePath) + "..\.."
 #define SingBoxDir ProjectRoot + "\sing-box"
 #define SingBoxExe SingBoxDir + "\sing-box.exe"
-#define IncludeSingBox FileExists(SingBoxExe)
+#define SingBoxLicense SingBoxDir + "\LICENSE"
+#define IncludeSingBox FileExists(SingBoxExe) && FileExists(SingBoxLicense)
 
 [Setup]
 AppId=singcli
@@ -65,9 +67,11 @@ Name: "addtopath"; Description: "Add the installation directory to PATH"; Flags:
 [Files]
 Source: "{#ProjectRoot}\dist\singcli.jar"; DestDir: "{app}"; Components: core; Flags: ignoreversion
 Source: "{#ProjectRoot}\scripts\windows\singcli.cmd"; DestDir: "{app}"; Components: core; Flags: ignoreversion
+Source: "{#ProjectRoot}\LICENSE"; DestDir: "{app}"; DestName: "LICENSE-singcli.txt"; Components: core; Flags: ignoreversion
 #if IncludeSingBox
 Source: "{#SingBoxExe}"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion
 Source: "{#SingBoxDir}\*.dll"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SingBoxLicense}"; DestDir: "{app}"; DestName: "LICENSE-sing-box.txt"; Components: singbox; Flags: ignoreversion
 #endif
 
 [Code]
