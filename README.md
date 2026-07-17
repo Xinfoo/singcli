@@ -57,79 +57,20 @@ ISCC.exe scripts\build\windows-installer.iss
 ```
 
 生成的安装器位于 `dist\windows`。只有项目根目录的 `sing-box` 目录中同时存在
-`sing-box.exe` 和 `LICENSE` 时，安装器才会自动包含它们及同目录的 DLL；任意一个
-不存在时只打包 singcli。安装后的目录会用 `LICENSE-singcli.txt` 和
-`LICENSE-sing-box.txt` 区分两个项目的许可证。
+`sing-box.exe`、`LICENSE` 和 `GPL-3.0.txt` 时，安装器才会自动包含 sing-box 及
+同目录的 DLL；任意一个必需文件不存在时只打包 singcli。安装后的目录会用
+`LICENSE-singcli.txt`、`LICENSE-sing-box.txt` 和 `GPL-3.0.txt` 区分相关许可证。
 
 安装器支持管理员或当前用户安装、可选添加 PATH，并会在卸载时清理对应 PATH。
 Windows 安装包面向 AMD64，默认安装到 `C:\Program Files\singcli`。
 
 ## Windows 安装
 
-Windows 下使用根目录的 PowerShell 安装脚本安装预编译好的 jar。安装前需要确认项目目录中已经存在：
+Windows 下统一使用 Inno Setup 生成的安装器。运行 `dist\windows` 中的安装程序，
+根据向导选择安装目录、是否包含 sing-box，以及是否将安装目录加入 PATH。卸载时使用
+Windows“已安装的应用”中的 singcli 卸载项。
 
-```text
-dist\singcli.jar
-```
-
-安装脚本不会执行编译过程。因为这里安装的是 jar 和调用脚本，Windows 机器仍然需要已经安装 Java 17 或更新版本，并且 `java` 在 PATH 中。
-
-默认安装目录是：
-
-```text
-C:\Program Files\singcli
-```
-
-不附带 `sing-box.exe` 的安装方式只会复制 `dist\singcli.jar`、`scripts\windows\singcli.cmd` 和卸载脚本到安装目录，并把安装目录加入 PATH。默认写入 Machine PATH；如果当前 PowerShell 不是管理员，安装脚本会自动请求管理员权限。运行：
-
-```powershell
-.\install-windows.ps1
-```
-
-附带 `sing-box.exe` 的安装方式还会把项目 `sing-box` 目录中的 Windows 版 `sing-box.exe` 及其同目录 DLL 一起复制到安装目录。运行前请先把 Windows 版 `sing-box.exe` 放到项目根目录的 `sing-box` 目录中：
-
-```text
-singcli\
-  dist\
-    singcli.jar
-  sing-box\
-    sing-box.exe
-    *.dll
-```
-
-`sing-box` 目录下只能有一个 `sing-box.exe`。如果下载的 sing-box 压缩包解压后带有子目录，也可以直接保留子目录结构；安装脚本会递归查找唯一的 `sing-box.exe`，并复制它同目录下的 DLL。
-
-```powershell
-.\install-windows-with-sing-box.ps1
-```
-
-自定义安装目录：
-
-```powershell
-.\install-windows.ps1 -InstallDir "D:\apps\singcli"
-```
-
-如果不想写入系统 PATH，只写入当前用户 PATH：
-
-```powershell
-.\install-windows.ps1 -PathScope User
-```
-
-两个安装脚本都支持 `-InstallDir`、`-PathScope User` 和 `-Force`。安装脚本会检查 PATH 中是否已经存在其它 `singcli` 命令；如果存在，会中止以避免命令冲突。
-
-卸载：
-
-```powershell
-.\uninstall-windows.ps1
-```
-
-如果安装到了自定义目录，卸载时也需要指定同一个目录：
-
-```powershell
-.\uninstall-windows.ps1 -InstallDir "D:\apps\singcli"
-```
-
-安装脚本也会把 `uninstall-windows.ps1` 复制到安装目录，之后也可以从安装目录运行卸载脚本。
+安装内容仍然需要 Java 17 或更新版本，并且 `java` 位于 PATH 中。
 
 ## 命令行调用脚本
 
