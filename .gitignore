@@ -1,7 +1,7 @@
-bin/
+/bin/
 /build/
-dist/
-.makepkg-build/
-pkg/
-sing-box/
+/dist/
+/.makepkg-build/
+/pkg/
+/sing-box/
 *.zst
