@@ -1,8 +1,8 @@
 package commands;
 
-import app.InputSupport;
-import platform.AppPathsSupport;
-import process.ProcessSupport;
+import app.ConsoleInput;
+import platform.AppPaths;
+import process.SingBoxProcessManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,23 +17,23 @@ import java.util.Scanner;
 
 public class StartSingBox {
     // start 命令固定读取平台配置目录下的 config.json。
-    private static final Path CONFIG_PATH = AppPathsSupport.configPath();
+    private static final Path CONFIG_PATH = AppPaths.configPath();
 
     public static int run(String[] args) {
         // 主流程统一放在 try 块中，任何启动失败都会打印错误并以非零状态退出。
         try {
-            Scanner scanner = InputSupport.scanner();
+            Scanner scanner = ConsoleInput.scanner();
             // 启动前先查找已有 sing-box 进程，避免多个进程同时占用端口或使用不同配置。
-            List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
+            List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
             if (!running.isEmpty()) {
                 System.out.println("Detected an existing running sing-box process:");
-                ProcessSupport.printProcessTable(running);
+                SingBoxProcessManager.printProcessTable(running);
                 // 用户不确认停止旧进程时，保持现状并正常退出。
                 if (!confirm(scanner, "Stop the currently running sing-box process? (y/N): ")) {
                     System.out.println("Exited.");
                     return 0;
                 }
-                ProcessSupport.terminateProcesses(running);
+                SingBoxProcessManager.terminateProcesses(running);
             }
 
             if (!Files.exists(CONFIG_PATH)) {
@@ -42,7 +42,7 @@ public class StartSingBox {
 
             List<Path> candidates = findSingBoxBinaries();
             if (candidates.isEmpty()) {
-                throw new IllegalArgumentException("sing-box executable was not found in PATH or the installation directory: " + AppPathsSupport.installationDirectory());
+                throw new IllegalArgumentException("sing-box executable was not found in PATH or the installation directory: " + AppPaths.installationDirectory());
             }
 
             // 多个候选时让用户选择，之后用选中的二进制启动进程。
@@ -51,7 +51,7 @@ public class StartSingBox {
             System.out.println("sing-box started.");
             return 0;
         } catch (Exception e) {
-            System.err.println("Start failed: " + ProcessSupport.errorMessage(e));
+            System.err.println("Start failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
     }
@@ -66,7 +66,7 @@ public class StartSingBox {
     private static List<Path> findSingBoxBinaries() {
         Map<String, Path> candidates = new LinkedHashMap<>();
         // 优先允许用户把 sing-box 放在 singcli.jar 同目录，便于做成一个便携安装目录。
-        addCandidate(candidates, AppPathsSupport.installationDirectory().resolve(ProcessSupport.executableName()));
+        addCandidate(candidates, AppPaths.installationDirectory().resolve(SingBoxProcessManager.executableName()));
 
         String pathValue = System.getenv("PATH");
         if (pathValue != null && !pathValue.isBlank()) {
@@ -75,10 +75,10 @@ public class StartSingBox {
                 if (entry.isBlank()) {
                     continue;
                 }
-                addCandidate(candidates, Path.of(entry, ProcessSupport.executableName()));
+                addCandidate(candidates, Path.of(entry, SingBoxProcessManager.executableName()));
                 // 非 Windows 下也兼容用户放了 sing-box.exe 的情况。
-                if (!ProcessSupport.isWindows()) {
-                    addCandidate(candidates, Path.of(entry, ProcessSupport.WINDOWS_BINARY_NAME));
+                if (!SingBoxProcessManager.isWindows()) {
+                    addCandidate(candidates, Path.of(entry, SingBoxProcessManager.WINDOWS_BINARY_NAME));
                 }
             }
         }
@@ -92,7 +92,7 @@ public class StartSingBox {
         if (!Files.isRegularFile(absolute) || !Files.isExecutable(absolute)) {
             return;
         }
-        if (!ProcessSupport.isSingBoxFileName(absolute.getFileName().toString())) {
+        if (!SingBoxProcessManager.isSingBoxFileName(absolute.getFileName().toString())) {
             return;
         }
         candidates.putIfAbsent(absolute.toString(), absolute);
@@ -133,7 +133,7 @@ public class StartSingBox {
                 config.toString()
         );
         // 进程工作目录放在配置目录，方便配置里使用相对资源路径。
-        builder.directory(AppPathsSupport.configDirectory().toFile());
+        builder.directory(AppPaths.configDirectory().toFile());
         // 当前工具不接管 sing-box 日志，启动输出直接丢弃。
         builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
         builder.redirectError(ProcessBuilder.Redirect.DISCARD);

@@ -7,12 +7,12 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 // Windows 进程信息兼容层：补充 ProcessHandle 经常无法返回的完整命令行。
-final class WindowsProcessSupport {
-    private WindowsProcessSupport() {
+final class WindowsProcessInfo {
+    private WindowsProcessInfo() {
     }
 
     static Optional<String> commandLine(ProcessHandle process) {
-        if (!ProcessSupport.isWindows()) {
+        if (!SingBoxProcessManager.isWindows()) {
             return Optional.empty();
         }
 

@@ -13,7 +13,7 @@ import java.util.Scanner;
 class Index {
     static int run(String[] args) {
         // 首页和各个命令共用同一个 Scanner，命令返回后仍可继续读取输入。
-        Scanner scanner = InputSupport.scanner();
+        Scanner scanner = ConsoleInput.scanner();
         while (true) {
             printMenu();
             System.out.print("Select an action: ");

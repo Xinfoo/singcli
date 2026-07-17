@@ -1,6 +1,6 @@
 package config;
 
-import json.JsonObjectSupport;
+import json.JsonObjectFields;
 
 // 把下载的 sing-box 配置调整为 singcli 所需的入站和 Clash API 结构。
 final class ConfigNormalizer {
@@ -36,9 +36,9 @@ final class ConfigNormalizer {
     }
 
     private static String replaceInbounds(String json) {
-        JsonObjectSupport.FieldLocation inbounds = JsonObjectSupport.findField(json, "inbounds");
+        JsonObjectFields.FieldLocation inbounds = JsonObjectFields.findField(json, "inbounds");
         if (inbounds == null) {
-            return JsonObjectSupport.addField(json, "inbounds", INBOUNDS_VALUE, "  ");
+            return JsonObjectFields.addField(json, "inbounds", INBOUNDS_VALUE, "  ");
         }
         if (json.charAt(inbounds.valueStart()) != '[') {
             throw new IllegalArgumentException("The inbounds field is not an array");
@@ -49,9 +49,9 @@ final class ConfigNormalizer {
     }
 
     private static String ensureClashApi(String json) {
-        JsonObjectSupport.FieldLocation experimental = JsonObjectSupport.findField(json, "experimental");
+        JsonObjectFields.FieldLocation experimental = JsonObjectFields.findField(json, "experimental");
         if (experimental == null) {
-            return JsonObjectSupport.addField(json, "experimental", EXPERIMENTAL_VALUE, "  ");
+            return JsonObjectFields.addField(json, "experimental", EXPERIMENTAL_VALUE, "  ");
         }
         if (json.charAt(experimental.valueStart()) != '{') {
             return json.substring(0, experimental.valueStart())
@@ -60,7 +60,7 @@ final class ConfigNormalizer {
         }
 
         String experimentalJson = json.substring(experimental.valueStart(), experimental.valueEnd() + 1);
-        String updated = JsonObjectSupport.replaceOrAddField(
+        String updated = JsonObjectFields.replaceOrAddField(
                 experimentalJson, "clash_api", CLASH_API_VALUE, "    ");
         return json.substring(0, experimental.valueStart())
                 + updated

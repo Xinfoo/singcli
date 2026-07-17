@@ -4,8 +4,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 // 从进程参数中读取 sing-box 配置路径，并尽量解析为绝对路径。
-final class ProcessConfigPathSupport {
-    private ProcessConfigPathSupport() {
+final class ProcessConfigPathResolver {
+    private ProcessConfigPathResolver() {
     }
 
     static Optional<Path> find(ProcessHandle process) {
@@ -28,9 +28,9 @@ final class ProcessConfigPathSupport {
                 return config;
             }
         }
-        if (ProcessSupport.isWindows()) {
-            return WindowsProcessSupport.commandLine(process)
-                    .map(WindowsProcessSupport::splitCommandLine)
+        if (SingBoxProcessManager.isWindows()) {
+            return WindowsProcessInfo.commandLine(process)
+                    .map(WindowsProcessInfo::splitCommandLine)
                     .flatMap(values -> rawConfigPath(values.toArray(String[]::new)));
         }
         return Optional.empty();
@@ -51,7 +51,7 @@ final class ProcessConfigPathSupport {
 
     // Linux/Unix 下通过 /proc/<pid>/cwd 解析相对配置路径。
     private static Optional<Path> workingDirectory(ProcessHandle process) {
-        if (ProcessSupport.isWindows()) {
+        if (SingBoxProcessManager.isWindows()) {
             return Optional.empty();
         }
         Path cwdLink = Path.of("/proc", Long.toString(process.pid()), "cwd");

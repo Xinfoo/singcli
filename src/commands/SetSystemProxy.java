@@ -1,8 +1,8 @@
 package commands;
 
-import config.ConfigSupport;
-import platform.AppPathsSupport;
-import process.ProcessSupport;
+import config.SingBoxConfig;
+import platform.AppPaths;
+import process.SingBoxProcessManager;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -12,10 +12,10 @@ import java.util.List;
 
 // Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
 public class SetSystemProxy {
-    private static final Path CONFIG_PATH = AppPathsSupport.configPath();
+    private static final Path CONFIG_PATH = AppPaths.configPath();
 
     public static int run(String[] args) {
-        if (!ProcessSupport.isWindows()) {
+        if (!SingBoxProcessManager.isWindows()) {
             System.err.println("Set system proxy is only supported on Windows.");
             return 1;
         }
@@ -26,12 +26,12 @@ public class SetSystemProxy {
             }
 
             String config = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
-            String proxyAddress = ConfigSupport.localProxyAddress(config);
+            String proxyAddress = SingBoxConfig.localProxyAddress(config);
             applyWindowsProxy(proxyAddress);
             System.out.println("Windows system proxy enabled: " + proxyAddress);
             return 0;
         } catch (Exception e) {
-            System.err.println("Set system proxy failed: " + ProcessSupport.errorMessage(e));
+            System.err.println("Set system proxy failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
     }

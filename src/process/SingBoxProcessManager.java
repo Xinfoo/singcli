@@ -8,11 +8,11 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 // 通用进程工具：识别、展示和终止 sing-box 进程，并对外提供进程相关查询入口。
-public final class ProcessSupport {
+public final class SingBoxProcessManager {
     public static final String UNIX_BINARY_NAME = "sing-box";
     public static final String WINDOWS_BINARY_NAME = "sing-box.exe";
 
-    private ProcessSupport() {
+    private SingBoxProcessManager() {
     }
 
     // 枚举系统所有进程，过滤出当前进程以外的 sing-box 进程。
@@ -20,7 +20,7 @@ public final class ProcessSupport {
         long currentPid = ProcessHandle.current().pid();
         return ProcessHandle.allProcesses()
                 .filter(process -> process.pid() != currentPid)
-                .filter(ProcessSupport::isSingBoxProcess)
+                .filter(SingBoxProcessManager::isSingBoxProcess)
                 .toList();
     }
 
@@ -38,11 +38,11 @@ public final class ProcessSupport {
     }
 
     public static boolean isListeningOnTcpPort(ProcessHandle process, int port) {
-        return TcpPortSupport.isListening(process, port);
+        return TcpPortInspector.isListening(process, port);
     }
 
     public static Optional<Path> configPath(ProcessHandle process) {
-        return ProcessConfigPathSupport.find(process);
+        return ProcessConfigPathResolver.find(process);
     }
 
     public static void printProcessTable(List<ProcessHandle> processes) {
@@ -66,8 +66,8 @@ public final class ProcessSupport {
         String command = info.command().orElse("-");
         String arguments = info.arguments()
                 .map(args -> String.join(" ", args))
-                .or(() -> WindowsProcessSupport.commandLine(process)
-                        .map(WindowsProcessSupport::displayArguments))
+                .or(() -> WindowsProcessInfo.commandLine(process)
+                        .map(WindowsProcessInfo::displayArguments))
                 .orElse("");
         System.out.printf("%-8d  %-20s  %s%n", process.pid(), command, arguments);
     }
@@ -126,7 +126,7 @@ public final class ProcessSupport {
         if (command.isPresent() && isSingBoxFileName(Path.of(command.get()).getFileName().toString())) {
             return true;
         }
-        return info.arguments().map(ProcessSupport::argumentsContainSingBoxCommand).orElse(false);
+        return info.arguments().map(SingBoxProcessManager::argumentsContainSingBoxCommand).orElse(false);
     }
 
     private static boolean argumentsContainSingBoxCommand(String[] arguments) {

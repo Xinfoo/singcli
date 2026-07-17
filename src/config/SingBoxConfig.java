@@ -1,16 +1,16 @@
 package config;
 
-import json.JsonObjectSupport;
-import json.JsonSyntaxSupport;
+import json.JsonObjectFields;
+import json.JsonSyntax;
 
 import java.util.List;
 
 // sing-box 配置读取入口：向 commands 层提供业务所需的配置视图和字段值。
-public final class ConfigSupport {
+public final class SingBoxConfig {
     private static final String DEFAULT_CLASH_CONTROLLER = "127.0.0.1:9090";
     private static final String DEFAULT_SELECTOR_TAG = "proxy";
 
-    private ConfigSupport() {
+    private SingBoxConfig() {
     }
 
     public static String normalizeConfig(String json) {
@@ -19,7 +19,7 @@ public final class ConfigSupport {
 
     // 提取 selector、节点列表、Clash API 地址和 secret。
     public static ConfigView readConfigView(String json) {
-        JsonObjectSupport.FieldLocation outbounds = JsonObjectSupport.findField(json, "outbounds");
+        JsonObjectFields.FieldLocation outbounds = JsonObjectFields.findField(json, "outbounds");
         if (outbounds == null || json.charAt(outbounds.valueStart()) != '[') {
             throw new IllegalArgumentException("Top-level outbounds array was not found");
         }
@@ -32,15 +32,15 @@ public final class ConfigSupport {
 
         String controller = DEFAULT_CLASH_CONTROLLER;
         String secret = "";
-        JsonObjectSupport.FieldLocation experimental = JsonObjectSupport.findField(json, "experimental");
+        JsonObjectFields.FieldLocation experimental = JsonObjectFields.findField(json, "experimental");
         if (experimental != null && json.charAt(experimental.valueStart()) == '{') {
             String experimentalJson = json.substring(experimental.valueStart(), experimental.valueEnd() + 1);
-            JsonObjectSupport.FieldLocation clashApi = JsonObjectSupport.findField(experimentalJson, "clash_api");
+            JsonObjectFields.FieldLocation clashApi = JsonObjectFields.findField(experimentalJson, "clash_api");
             if (clashApi != null && experimentalJson.charAt(clashApi.valueStart()) == '{') {
                 String clashApiJson = experimentalJson.substring(clashApi.valueStart(), clashApi.valueEnd() + 1);
-                controller = JsonObjectSupport.stringField(
+                controller = JsonObjectFields.stringField(
                         clashApiJson, "external_controller", DEFAULT_CLASH_CONTROLLER);
-                secret = JsonObjectSupport.stringField(clashApiJson, "secret", "");
+                secret = JsonObjectFields.stringField(clashApiJson, "secret", "");
             }
         }
 
@@ -49,16 +49,16 @@ public final class ConfigSupport {
 
     // 读取第一个本地入站地址，供 Windows 系统代理设置使用。
     public static String localProxyAddress(String json) {
-        JsonObjectSupport.FieldLocation inbounds = JsonObjectSupport.findField(json, "inbounds");
+        JsonObjectFields.FieldLocation inbounds = JsonObjectFields.findField(json, "inbounds");
         if (inbounds == null || json.charAt(inbounds.valueStart()) != '[') {
             throw new IllegalArgumentException("Top-level inbounds array was not found");
         }
 
         String inboundsJson = json.substring(inbounds.valueStart(), inbounds.valueEnd() + 1);
-        for (String inbound : JsonSyntaxSupport.objectElements(inboundsJson)) {
-            int port = JsonObjectSupport.intField(inbound, "listen_port", -1);
+        for (String inbound : JsonSyntax.objectElements(inboundsJson)) {
+            int port = JsonObjectFields.intField(inbound, "listen_port", -1);
             if (port > 0) {
-                String listen = JsonObjectSupport.stringField(inbound, "listen", "127.0.0.1");
+                String listen = JsonObjectFields.stringField(inbound, "listen", "127.0.0.1");
                 return listen + ":" + port;
             }
         }
@@ -66,21 +66,21 @@ public final class ConfigSupport {
     }
 
     public static String stringFieldOrDefault(String objectJson, String field, String fallback) {
-        return JsonObjectSupport.stringField(objectJson, field, fallback);
+        return JsonObjectFields.stringField(objectJson, field, fallback);
     }
 
     public static String jsonEscape(String value) {
-        return JsonSyntaxSupport.escapeString(value);
+        return JsonSyntax.escapeString(value);
     }
 
     private static SelectorView findSelector(String outboundsJson) {
         SelectorView fallback = null;
-        for (String outbound : JsonSyntaxSupport.objectElements(outboundsJson)) {
-            if (!"selector".equals(JsonObjectSupport.stringField(outbound, "type", ""))) {
+        for (String outbound : JsonSyntax.objectElements(outboundsJson)) {
+            if (!"selector".equals(JsonObjectFields.stringField(outbound, "type", ""))) {
                 continue;
             }
-            String tag = JsonObjectSupport.stringField(outbound, "tag", "");
-            List<String> nodes = JsonObjectSupport.stringArrayField(outbound, "outbounds");
+            String tag = JsonObjectFields.stringField(outbound, "tag", "");
+            List<String> nodes = JsonObjectFields.stringArrayField(outbound, "outbounds");
             SelectorView selector = new SelectorView(tag, nodes);
             if (DEFAULT_SELECTOR_TAG.equals(tag)) {
                 return selector;

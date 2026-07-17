@@ -8,12 +8,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 // 检查指定进程是否拥有某个 TCP 监听端口。
-final class TcpPortSupport {
-    private TcpPortSupport() {
+final class TcpPortInspector {
+    private TcpPortInspector() {
     }
 
     static boolean isListening(ProcessHandle process, int port) {
-        return ProcessSupport.isWindows()
+        return SingBoxProcessManager.isWindows()
                 ? isListeningOnWindows(process.pid(), port)
                 : isListeningOnProcfs(process.pid(), port);
     }

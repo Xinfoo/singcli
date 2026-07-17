@@ -1,9 +1,9 @@
 package commands;
 
-import app.InputSupport;
-import config.ConfigSupport;
-import platform.AppPathsSupport;
-import process.ProcessSupport;
+import app.ConsoleInput;
+import config.SingBoxConfig;
+import platform.AppPaths;
+import process.SingBoxProcessManager;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -33,7 +33,7 @@ public class StatusSingBox {
     public static int run(String[] args) {
         try {
             // status 是只读操作：没有进程时直接报告状态，不作为命令执行失败处理。
-            List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
+            List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
             if (running.isEmpty()) {
                 System.out.println("sing-box is not running.");
                 return 0;
@@ -42,30 +42,30 @@ public class StatusSingBox {
             // 单进程直接使用；多进程则只选择实际占用 Clash API 9090 端口的进程。
             ProcessHandle process = selectProcess(running);
             // 优先读取进程命令行里的 -c/--config 路径；无法取得时退回 singcli 默认配置。
-            Path configPath = ProcessSupport.configPath(process).orElse(AppPathsSupport.configPath());
+            Path configPath = SingBoxProcessManager.configPath(process).orElse(AppPaths.configPath());
             if (!Files.isRegularFile(configPath)) {
                 throw new IllegalStateException("Could not read the config used by sing-box process " + process.pid());
             }
 
             // 配置中包含 selector tag、Clash API 地址和鉴权 secret，查询当前节点需要这些信息。
-            ConfigSupport.ConfigView view = ConfigSupport.readConfigView(
+            SingBoxConfig.ConfigView view = SingBoxConfig.readConfigView(
                     Files.readString(configPath, StandardCharsets.UTF_8));
             String currentNode = queryCurrentNode(view);
 
             // 进程表沿用其它命令的统一格式，并额外显示 status 特有的配置和节点信息。
             System.out.println("sing-box is running.");
-            ProcessSupport.printProcessTable(List.of(process));
+            SingBoxProcessManager.printProcessTable(List.of(process));
             System.out.println("Config: " + configPath.toAbsolutePath().normalize());
             System.out.println("Current node: " + (currentNode.isEmpty() ? "Unknown" : currentNode));
             return 0;
         } catch (Exception e) {
-            System.err.println("Status failed: " + ProcessSupport.errorMessage(e));
+            System.err.println("Status failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
     }
 
     private static void waitForEnter() {
-        Scanner scanner = InputSupport.scanner();
+        Scanner scanner = ConsoleInput.scanner();
         System.out.println();
         System.out.print("Press Enter to exit...");
         // 输入被重定向且已经到达 EOF 时直接结束，避免抛出 NoSuchElementException。
@@ -80,7 +80,7 @@ public class StatusSingBox {
             return running.get(0);
         }
         List<ProcessHandle> matches = running.stream()
-                .filter(process -> ProcessSupport.isListeningOnTcpPort(process, CLASH_API_PORT)).toList();
+                .filter(process -> SingBoxProcessManager.isListeningOnTcpPort(process, CLASH_API_PORT)).toList();
         if (matches.size() == 1) {
             return matches.get(0);
         }
@@ -92,7 +92,7 @@ public class StatusSingBox {
     }
 
     // 调用 Clash API 的 selector 详情接口，响应中的 now 字段就是当前选中的节点。
-    private static String queryCurrentNode(ConfigSupport.ConfigView view) throws Exception {
+    private static String queryCurrentNode(SingBoxConfig.ConfigView view) throws Exception {
         // external_controller 通常不带协议；没有协议时按本地 Clash API 的常见 HTTP 方式访问。
         String controller = view.controller().startsWith("http://") || view.controller().startsWith("https://")
                 ? view.controller() : "http://" + view.controller();
@@ -110,6 +110,6 @@ public class StatusSingBox {
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IllegalStateException("Clash API returned HTTP " + response.statusCode());
         }
-        return ConfigSupport.stringFieldOrDefault(response.body(), "now", "");
+        return SingBoxConfig.stringFieldOrDefault(response.body(), "now", "");
     }
 }

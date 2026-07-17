@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 // 处理 JSON 文本的字符串转义、容器边界和数组对象元素。
-public final class JsonSyntaxSupport {
-    private JsonSyntaxSupport() {
+public final class JsonSyntax {
+    private JsonSyntax() {
     }
 
     public static int skipWhitespace(String text, int start) {

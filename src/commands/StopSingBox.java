@@ -1,7 +1,7 @@
 package commands;
 
-import app.InputSupport;
-import process.ProcessSupport;
+import app.ConsoleInput;
+import process.SingBoxProcessManager;
 
 import java.util.List;
 import java.util.Locale;
@@ -12,9 +12,9 @@ public class StopSingBox {
     public static int run(String[] args) {
         // 停止流程统一处理异常，失败时以非零状态退出。
         try {
-            Scanner scanner = InputSupport.scanner();
+            Scanner scanner = ConsoleInput.scanner();
             // 先搜索所有疑似 sing-box 的进程。
-            List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
+            List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
             if (running.isEmpty()) {
                 System.out.println("No running sing-box process was detected.");
                 return 0;
@@ -24,25 +24,25 @@ public class StopSingBox {
             if (running.size() == 1) {
                 ProcessHandle process = running.get(0);
                 System.out.println("Detected a sing-box process:");
-                ProcessSupport.printProcessTable(running);
-                ProcessSupport.terminateProcesses(List.of(process));
+                SingBoxProcessManager.printProcessTable(running);
+                SingBoxProcessManager.terminateProcesses(List.of(process));
                 System.out.println("Stopped sing-box process: " + process.pid());
                 return 0;
             }
 
             // 多个进程时打印带编号列表，由用户决定停止哪个或全部停止。
             System.out.println("Detected multiple sing-box processes:");
-            ProcessSupport.printIndexedProcessTable(running);
+            SingBoxProcessManager.printIndexedProcessTable(running);
             List<ProcessHandle> selected = chooseProcesses(scanner, running);
             // 用户直接回车表示取消操作，按正常退出处理。
             if (selected.isEmpty()) {
                 return 0;
             }
-            ProcessSupport.terminateProcesses(selected);
-            System.out.println("Stopped sing-box processes: " + ProcessSupport.processIds(selected));
+            SingBoxProcessManager.terminateProcesses(selected);
+            System.out.println("Stopped sing-box processes: " + SingBoxProcessManager.processIds(selected));
             return 0;
         } catch (Exception e) {
-            System.err.println("Stop failed: " + ProcessSupport.errorMessage(e));
+            System.err.println("Stop failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
     }

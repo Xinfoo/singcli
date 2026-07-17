@@ -1,6 +1,6 @@
 package platform;
 
-import process.ProcessSupport;
+import process.SingBoxProcessManager;
 
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -8,11 +8,11 @@ import java.nio.file.Path;
 import java.security.CodeSource;
 
 // 统一管理 singcli 自己使用的路径，避免各个命令分别硬编码 config.json 位置。
-public final class AppPathsSupport {
+public final class AppPaths {
     private static final String APP_DIR_NAME = "singcli";
     private static final String CONFIG_FILE_NAME = "config.json";
 
-    private AppPathsSupport() {
+    private AppPaths() {
     }
 
     // 返回当前平台下最终使用的配置文件路径。
@@ -22,7 +22,7 @@ public final class AppPathsSupport {
 
     // Linux 使用 XDG 配置目录，Windows 使用 APPDATA 下的 singcli。
     public static Path configDirectory() {
-        if (ProcessSupport.isWindows()) {
+        if (SingBoxProcessManager.isWindows()) {
             return windowsConfigDirectory();
         }
         return linuxConfigDirectory();
@@ -30,7 +30,7 @@ public final class AppPathsSupport {
 
     // 返回当前程序的安装目录。jar 运行时取 jar 所在目录，开发环境运行 class 时取 class 输出目录。
     public static Path installationDirectory() {
-        CodeSource codeSource = AppPathsSupport.class.getProtectionDomain().getCodeSource();
+        CodeSource codeSource = AppPaths.class.getProtectionDomain().getCodeSource();
         if (codeSource == null) {
             return Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
         }

@@ -1,9 +1,9 @@
 package commands;
 
-import app.InputSupport;
-import config.ConfigSupport;
-import platform.AppPathsSupport;
-import process.ProcessSupport;
+import app.ConsoleInput;
+import config.SingBoxConfig;
+import platform.AppPaths;
+import process.SingBoxProcessManager;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -20,12 +20,12 @@ import java.util.Scanner;
 
 public class NodeSwitcher {
     // switch 命令读取和校验的配置文件路径必须与 get/start 使用同一套规则。
-    private static final Path CONFIG_PATH = AppPathsSupport.configPath();
+    private static final Path CONFIG_PATH = AppPaths.configPath();
 
     public static int run(String[] args) {
         // 主流程统一放在 try 块中，失败时打印原因并返回非零退出码。
         try {
-            Scanner scanner = InputSupport.scanner();
+            Scanner scanner = ConsoleInput.scanner();
             // 没有配置文件时无法知道 Clash API 和 selector 信息。
             if (!Files.exists(CONFIG_PATH)) {
                 throw new IllegalArgumentException("config.json was not found: " + CONFIG_PATH.toAbsolutePath().normalize() + ". Generate the config first");
@@ -39,12 +39,12 @@ public class NodeSwitcher {
             }
             ProcessSelection selection = selectedProcess.get();
             ProcessHandle process = selection.process();
-            if (!ensureProcessUsesConfig(process, currentConfig, selection.onlyProcess() && ProcessSupport.isWindows())) {
+            if (!ensureProcessUsesConfig(process, currentConfig, selection.onlyProcess() && SingBoxProcessManager.isWindows())) {
                 return 0;
             }
             // 解析配置，得到 selector tag、候选节点、Clash API 地址和 secret。
             String config = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
-            ConfigSupport.ConfigView view = ConfigSupport.readConfigView(config);
+            SingBoxConfig.ConfigView view = SingBoxConfig.readConfigView(config);
             // 查询当前节点，查询失败时本次切换不能继续。
             Optional<String> currentNode = queryCurrentNode(view);
             if (currentNode.isEmpty()) {
@@ -67,14 +67,14 @@ public class NodeSwitcher {
             System.out.println("Switched to: " + target);
             return 0;
         } catch (Exception e) {
-            System.err.println("Switch failed: " + ProcessSupport.errorMessage(e));
+            System.err.println("Switch failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
     }
 
     // 搜索运行中的 sing-box 进程；多个进程时要求用户明确选择。
     private static Optional<ProcessSelection> chooseSingBoxProcess(Scanner scanner) {
-        List<ProcessHandle> running = ProcessSupport.findRunningSingBoxProcesses();
+        List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
         if (running.isEmpty()) {
             throw new IllegalStateException("No running sing-box process was detected.");
         }
@@ -82,13 +82,13 @@ public class NodeSwitcher {
         if (running.size() == 1) {
             ProcessHandle process = running.get(0);
             System.out.println("Detected a sing-box process:");
-            ProcessSupport.printProcessTable(running);
+            SingBoxProcessManager.printProcessTable(running);
             return Optional.of(new ProcessSelection(process, true));
         }
 
         // 多个进程时显示编号列表，避免误操作其它 sing-box 实例。
         System.out.println("Detected multiple sing-box processes. Select one:");
-        ProcessSupport.printIndexedProcessTable(running);
+        SingBoxProcessManager.printIndexedProcessTable(running);
         System.out.print("Enter the process number to operate on, or press Enter to exit: ");
         String choice = scanner.nextLine().trim();
         // 空输入表示用户取消切换操作。
@@ -108,7 +108,7 @@ public class NodeSwitcher {
     }
 
     private static boolean ensureProcessUsesConfig(ProcessHandle process, Path currentConfig, boolean allowUnknownConfig) {
-        Optional<Path> processConfig = ProcessSupport.configPath(process);
+        Optional<Path> processConfig = SingBoxProcessManager.configPath(process);
         if (processConfig.isEmpty()) {
             if (!allowUnknownConfig) {
                 System.err.println("Switch aborted: could not determine the config file used by selected sing-box process "
@@ -145,25 +145,25 @@ public class NodeSwitcher {
     }
 
     // 通过 Clash API 查询 selector 当前使用的节点名称。
-    private static Optional<String> queryCurrentNode(ConfigSupport.ConfigView view) {
+    private static Optional<String> queryCurrentNode(SingBoxConfig.ConfigView view) {
         try {
             HttpResponse<String> response = sendClashRequest(view, "GET", view.selectorTag(), null);
             // 成功响应中读取 now 字段；没有 now 字段时返回空字符串并继续展示 Unknown。
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                return Optional.of(ConfigSupport.stringFieldOrDefault(response.body(), "now", ""));
+                return Optional.of(SingBoxConfig.stringFieldOrDefault(response.body(), "now", ""));
             }
             System.out.println("Failed to read the current node. HTTP " + response.statusCode());
         } catch (Exception e) {
-            System.out.println("Failed to read the current node: " + ProcessSupport.errorMessage(e));
+            System.out.println("Failed to read the current node: " + SingBoxProcessManager.errorMessage(e));
             System.out.println("Make sure sing-box is running and using a config.json with Clash API enabled.");
         }
         return Optional.empty();
     }
 
     // 通过 Clash API 把 selector 切换到目标节点。
-    private static void switchNode(ConfigSupport.ConfigView view, String target) throws Exception {
+    private static void switchNode(SingBoxConfig.ConfigView view, String target) throws Exception {
         // 节点名来自配置文件，写入 JSON 请求体前需要转义。
-        String body = "{\"name\":\"" + ConfigSupport.jsonEscape(target) + "\"}";
+        String body = "{\"name\":\"" + SingBoxConfig.jsonEscape(target) + "\"}";
         HttpResponse<String> response = sendClashRequest(view, "PUT", view.selectorTag(), body);
         // Clash API 返回非 2xx 时把响应体带回错误信息，方便定位失败原因。
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
@@ -173,7 +173,7 @@ public class NodeSwitcher {
 
     // 构造并发送 Clash API 请求；GET 用于查询，PUT 用于切换节点。
     private static HttpResponse<String> sendClashRequest(
-            ConfigSupport.ConfigView view,
+            SingBoxConfig.ConfigView view,
             String method,
             String proxyName,
             String body
