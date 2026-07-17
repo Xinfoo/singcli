@@ -1,10 +1,15 @@
+package commands;
+
+import support.InputSupport;
+import support.ProcessSupport;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
 // 停止 sing-box：列出当前运行进程，支持停止单个或全部。
-class StopSingBox {
-    static int run(String[] args) {
+public class StopSingBox {
+    public static int run(String[] args) {
         // 停止流程统一处理异常，失败时以非零状态退出。
         try {
             Scanner scanner = InputSupport.scanner();

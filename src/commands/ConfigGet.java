@@ -1,3 +1,9 @@
+package commands;
+
+import support.AppPathsSupport;
+import support.ConfigSupport;
+import support.InputSupport;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLConnection;
@@ -7,11 +13,11 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Scanner;
 
-class ConfigGet {
+public class ConfigGet {
     // 配置文件不再写入当前工作目录，而是写入 AppPathsSupport 计算出的平台配置目录。
     private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
-    static int run(String[] args) {
+    public static int run(String[] args) {
         // 读取用户输入的订阅或配置地址，并把下载、规范化、写文件放在同一个错误处理块中。
         try {
             Scanner scanner = InputSupport.scanner();

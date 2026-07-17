@@ -1,3 +1,5 @@
+package support;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,17 +10,17 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 // 进程相关工具：识别 sing-box 进程，并从进程参数中推断配置文件路径。
-final class ProcessSupport {
+public final class ProcessSupport {
     // 不同平台上的 sing-box 可执行文件名。
-    static final String UNIX_BINARY_NAME = "sing-box";
-    static final String WINDOWS_BINARY_NAME = "sing-box.exe";
+    public static final String UNIX_BINARY_NAME = "sing-box";
+    public static final String WINDOWS_BINARY_NAME = "sing-box.exe";
 
     // 工具类不需要实例化。
     private ProcessSupport() {
     }
 
     // 枚举系统所有进程，过滤出当前进程以外的 sing-box 进程。
-    static List<ProcessHandle> findRunningSingBoxProcesses() {
+    public static List<ProcessHandle> findRunningSingBoxProcesses() {
         long currentPid = ProcessHandle.current().pid();
         return ProcessHandle.allProcesses()
                 .filter(process -> process.pid() != currentPid)
@@ -27,22 +29,22 @@ final class ProcessSupport {
     }
 
     // 判断文件名是否是 sing-box；Windows 文件名按大小写不敏感处理。
-    static boolean isSingBoxFileName(String fileName) {
+    public static boolean isSingBoxFileName(String fileName) {
         return UNIX_BINARY_NAME.equals(fileName) || WINDOWS_BINARY_NAME.equalsIgnoreCase(fileName);
     }
 
     // 根据当前系统返回优先查找的可执行文件名。
-    static String executableName() {
+    public static String executableName() {
         return isWindows() ? WINDOWS_BINARY_NAME : UNIX_BINARY_NAME;
     }
 
     // 通过 os.name 判断当前运行系统是否为 Windows。
-    static boolean isWindows() {
+    public static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win");
     }
 
     // 判断指定进程是否正在监听 TCP 端口。用于从多个 sing-box 中定位 Clash API 实例。
-    static boolean isListeningOnTcpPort(ProcessHandle process, int port) {
+    public static boolean isListeningOnTcpPort(ProcessHandle process, int port) {
         // Windows 没有 /proc，分别使用 PowerShell 和 Linux procfs 实现相同的 PID/端口匹配。
         return isWindows()
                 ? isListeningOnTcpPortWindows(process.pid(), port)
@@ -115,7 +117,7 @@ final class ProcessSupport {
     }
 
     // 从进程启动参数中提取配置路径；相对路径会尝试按进程工作目录解析。
-    static Optional<Path> configPath(ProcessHandle process) {
+    public static Optional<Path> configPath(ProcessHandle process) {
         Optional<Path> config = rawConfigPath(process);
         if (config.isEmpty()) {
             return Optional.empty();
@@ -131,7 +133,7 @@ final class ProcessSupport {
     }
 
     // 打印不带编号的进程表。
-    static void printProcessTable(List<ProcessHandle> processes) {
+    public static void printProcessTable(List<ProcessHandle> processes) {
         System.out.printf("%-8s  %-20s  %s%n", "PID", "Command", "Arguments");
         for (ProcessHandle process : processes) {
             printProcessRow(process);
@@ -139,7 +141,7 @@ final class ProcessSupport {
     }
 
     // 打印带编号的进程表，用于用户从多个进程中选择。
-    static void printIndexedProcessTable(List<ProcessHandle> processes) {
+    public static void printIndexedProcessTable(List<ProcessHandle> processes) {
         System.out.printf("%-4s  %-8s  %-20s  %s%n", "No.", "PID", "Command", "Arguments");
         for (int i = 0; i < processes.size(); i++) {
             System.out.printf("%-4d  ", i + 1);
@@ -148,7 +150,7 @@ final class ProcessSupport {
     }
 
     // 打印单个进程信息；ProcessHandle.Info 取不到命令或参数时使用占位值。
-    static void printProcessRow(ProcessHandle process) {
+    public static void printProcessRow(ProcessHandle process) {
         ProcessHandle.Info info = process.info();
         String command = info.command().orElse("-");
         String arguments = info.arguments()
@@ -159,7 +161,7 @@ final class ProcessSupport {
     }
 
     // 先温和终止进程，超时后强制终止，最后校验是否仍有残留。
-    static void terminateProcesses(List<ProcessHandle> processes) {
+    public static void terminateProcesses(List<ProcessHandle> processes) {
         if (processes.isEmpty()) {
             return;
         }
@@ -180,7 +182,7 @@ final class ProcessSupport {
     }
 
     // 在指定秒数内等待进程退出；等待异常由后续 isAlive 统一判断。
-    static void waitForExit(List<ProcessHandle> processes, long seconds) {
+    public static void waitForExit(List<ProcessHandle> processes, long seconds) {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(seconds);
         for (ProcessHandle process : processes) {
             long remaining = deadline - System.nanoTime();
@@ -195,7 +197,7 @@ final class ProcessSupport {
     }
 
     // 把进程列表格式化成逗号分隔的 PID 字符串。
-    static String processIds(List<ProcessHandle> processes) {
+    public static String processIds(List<ProcessHandle> processes) {
         List<String> ids = new ArrayList<>();
         for (ProcessHandle process : processes) {
             ids.add(Long.toString(process.pid()));
@@ -204,7 +206,7 @@ final class ProcessSupport {
     }
 
     // 输出异常信息；异常没有 message 时退回异常类名。
-    static String errorMessage(Exception e) {
+    public static String errorMessage(Exception e) {
         String message = e.getMessage();
         return message == null || message.isBlank() ? e.getClass().getSimpleName() : message;
     }

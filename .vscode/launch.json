@@ -5,7 +5,7 @@
             "type": "java",
             "name": "Debug singcli",
             "request": "launch",
-            "mainClass": "Main",
+            "mainClass": "app.Main",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "stopOnEntry": false

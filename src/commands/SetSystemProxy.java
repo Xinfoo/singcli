@@ -1,3 +1,9 @@
+package commands;
+
+import support.AppPathsSupport;
+import support.ConfigSupport;
+import support.ProcessSupport;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -5,10 +11,10 @@ import java.util.Base64;
 import java.util.List;
 
 // Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
-class SetSystemProxy {
+public class SetSystemProxy {
     private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
-    static int run(String[] args) {
+    public static int run(String[] args) {
         if (!ProcessSupport.isWindows()) {
             System.err.println("Set system proxy is only supported on Windows.");
             return 1;

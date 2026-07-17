@@ -1,3 +1,10 @@
+package commands;
+
+import support.AppPathsSupport;
+import support.ConfigSupport;
+import support.InputSupport;
+import support.ProcessSupport;
+
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -11,11 +18,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
-class NodeSwitcher {
+public class NodeSwitcher {
     // switch 命令读取和校验的配置文件路径必须与 get/start 使用同一套规则。
     private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
-    static int run(String[] args) {
+    public static int run(String[] args) {
         // 主流程统一放在 try 块中，失败时打印原因并返回非零退出码。
         try {
             Scanner scanner = InputSupport.scanner();

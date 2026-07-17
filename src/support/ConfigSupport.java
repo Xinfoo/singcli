@@ -1,8 +1,10 @@
+package support;
+
 import java.util.ArrayList;
 import java.util.List;
 
 // 配置文件工具：修改 sing-box JSON 配置，并读取节点切换需要的信息。
-final class ConfigSupport {
+public final class ConfigSupport {
     // 配置缺少 Clash API 或 selector tag 时使用的默认值。
     private static final String DEFAULT_CLASH_CONTROLLER = "127.0.0.1:9090";
     private static final String DEFAULT_SELECTOR_TAG = "proxy";
@@ -39,13 +41,13 @@ final class ConfigSupport {
     }
 
     // 规范化下载到的配置：替换入站，并确保 Clash API 可用。
-    static String normalizeConfig(String json) {
+    public static String normalizeConfig(String json) {
         json = replaceTopLevelInbounds(json);
         return ensureClashApi(json);
     }
 
     // 从配置中提取节点切换需要的 selector、节点列表、Clash API 地址和 secret。
-    static ConfigView readConfigView(String json) {
+    public static ConfigView readConfigView(String json) {
         // 先定位顶层 outbounds，节点信息都在这里面。
         FieldLocation outboundsField = findFieldInObject(json, "outbounds");
         if (outboundsField == null || json.charAt(outboundsField.valueStart) != '[') {
@@ -78,7 +80,7 @@ final class ConfigSupport {
     }
 
     // 从顶层 inbounds 中读取本地代理监听地址，供 Windows 系统代理设置使用。
-    static String localProxyAddress(String json) {
+    public static String localProxyAddress(String json) {
         FieldLocation inboundsField = findFieldInObject(json, "inbounds");
         if (inboundsField == null || json.charAt(inboundsField.valueStart) != '[') {
             throw new IllegalArgumentException("Top-level inbounds array was not found");
@@ -349,7 +351,7 @@ final class ConfigSupport {
     }
 
     // 读取对象中指定字符串字段；字段不存在或类型不是字符串时返回默认值。
-    static String stringFieldOrDefault(String objectJson, String field, String fallback) {
+    public static String stringFieldOrDefault(String objectJson, String field, String fallback) {
         FieldLocation location = findFieldInObject(objectJson, field);
         if (location == null || objectJson.charAt(location.valueStart) != '"') {
             return fallback;
@@ -427,7 +429,7 @@ final class ConfigSupport {
     }
 
     // 把普通字符串转义成可放进 JSON 字符串值的内容。
-    static String jsonEscape(String value) {
+    public static String jsonEscape(String value) {
         StringBuilder escaped = new StringBuilder();
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -454,7 +456,7 @@ final class ConfigSupport {
     }
 
     // 对外返回的配置视图：包含切换节点所需的最小信息。
-    record ConfigView(String selectorTag, List<String> nodes, String controller, String secret) {
+    public record ConfigView(String selectorTag, List<String> nodes, String controller, String secret) {
     }
 
     // 内部 selector 视图：保存 selector tag 和它可选的 outbound 列表。

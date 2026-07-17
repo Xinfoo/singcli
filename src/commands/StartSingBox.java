@@ -1,3 +1,9 @@
+package commands;
+
+import support.AppPathsSupport;
+import support.InputSupport;
+import support.ProcessSupport;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,11 +15,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 
-class StartSingBox {
+public class StartSingBox {
     // start 命令固定读取平台配置目录下的 config.json。
     private static final Path CONFIG_PATH = AppPathsSupport.configPath();
 
-    static int run(String[] args) {
+    public static int run(String[] args) {
         // 主流程统一放在 try 块中，任何启动失败都会打印错误并以非零状态退出。
         try {
             Scanner scanner = InputSupport.scanner();
