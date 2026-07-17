@@ -1,5 +1,5 @@
 {
-    // src 是统一的 source root，其子目录与各 Java 包一一对应。
+    // src 是统一的 source root，源码统一位于 singcli 根包下。
     "java.project.sourcePaths": [
         "src"
     ],

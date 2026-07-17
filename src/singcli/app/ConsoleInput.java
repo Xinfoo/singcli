@@ -1,4 +1,4 @@
-package app;
+package singcli.app;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;

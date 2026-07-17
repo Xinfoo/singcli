@@ -1,7 +1,7 @@
-package commands;
+package singcli.commands;
 
-import app.ConsoleInput;
-import process.SingBoxProcessManager;
+import singcli.app.ConsoleInput;
+import singcli.process.SingBoxProcessManager;
 
 import java.util.List;
 import java.util.Locale;

@@ -1,6 +1,6 @@
-package platform;
+package singcli.platform;
 
-import process.SingBoxProcessManager;
+import singcli.process.SingBoxProcessManager;
 
 import java.net.URISyntaxException;
 import java.nio.file.Files;

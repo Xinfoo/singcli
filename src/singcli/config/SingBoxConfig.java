@@ -1,7 +1,7 @@
-package config;
+package singcli.config;
 
-import json.JsonObjectFields;
-import json.JsonSyntax;
+import singcli.json.JsonObjectFields;
+import singcli.json.JsonSyntax;
 
 import java.util.List;
 

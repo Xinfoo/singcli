@@ -1,8 +1,8 @@
-package commands;
+package singcli.commands;
 
-import app.ConsoleInput;
-import platform.AppPaths;
-import process.SingBoxProcessManager;
+import singcli.app.ConsoleInput;
+import singcli.platform.AppPaths;
+import singcli.process.SingBoxProcessManager;
 
 import java.io.File;
 import java.io.IOException;

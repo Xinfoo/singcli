@@ -1,4 +1,4 @@
-package process;
+package singcli.process;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

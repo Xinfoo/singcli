@@ -1,9 +1,9 @@
-package commands;
+package singcli.commands;
 
-import app.ConsoleInput;
-import config.SingBoxConfig;
-import platform.AppPaths;
-import process.SingBoxProcessManager;
+import singcli.app.ConsoleInput;
+import singcli.config.SingBoxConfig;
+import singcli.platform.AppPaths;
+import singcli.process.SingBoxProcessManager;
 
 import java.net.URI;
 import java.net.URLEncoder;

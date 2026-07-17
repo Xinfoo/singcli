@@ -1,4 +1,4 @@
-package process;
+package singcli.process;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

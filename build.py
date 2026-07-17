@@ -12,7 +12,7 @@ CLASSES_DIR = BUILD_DIR / "classes"
 MANIFEST_PATH = BUILD_DIR / "MANIFEST.MF"
 DIST_DIR = ROOT / "dist"
 JAR_PATH = DIST_DIR / "singcli.jar"
-MAIN_CLASS = "app.Main"
+MAIN_CLASS = "singcli.app.Main"
 
 
 def main() -> int:

@@ -1,12 +1,12 @@
-package app;
+package singcli.app;
 
-import commands.ConfigGet;
-import commands.NodeSwitcher;
-import commands.SetSystemProxy;
-import commands.StartSingBox;
-import commands.StatusSingBox;
-import commands.StopSingBox;
-import commands.UnsetSystemProxy;
+import singcli.commands.ConfigGet;
+import singcli.commands.NodeSwitcher;
+import singcli.commands.SetSystemProxy;
+import singcli.commands.StartSingBox;
+import singcli.commands.StatusSingBox;
+import singcli.commands.StopSingBox;
+import singcli.commands.UnsetSystemProxy;
 
 // 程序总入口：根据命令行参数分发到不同功能模块。
 public class Main {
