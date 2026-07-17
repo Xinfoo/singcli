@@ -80,7 +80,9 @@ Linux 下可以使用 `scripts/linux/singcli` 作为包装脚本，把它放到 
 singcli start
 ```
 
-Windows 下可以使用 `scripts/windows/singcli.cmd` 作为包装脚本。运行时如果当前终端不是管理员权限，脚本会自动请求管理员权限并重新启动。默认 jar 路径是：
+Windows 下可以使用 `scripts/windows/singcli.cmd` 作为包装脚本。普通命令会在当前终端中
+直接运行；只有设置或取消系统代理时才会请求 UAC 授权，并在管理员 PowerShell 中执行。
+默认 jar 路径是：
 
 ```text
 C:\Program Files\singcli\singcli.jar

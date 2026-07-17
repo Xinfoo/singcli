@@ -1,10 +1,7 @@
 package singcli.commands;
 
+import singcli.platform.ElevatedPowerShell;
 import singcli.process.SingBoxProcessManager;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
 
 // Windows 系统代理取消命令：关闭当前用户系统代理并清理自动配置 URL。
 public class UnsetSystemProxy {
@@ -24,7 +21,7 @@ public class UnsetSystemProxy {
         }
     }
 
-    // 通过 PowerShell 修改注册表，并调用 WinInet 的 InternetSetOptionW 刷新系统代理。
+    // 通过管理员 PowerShell 修改注册表，并调用 WinInet 的 InternetSetOptionW 刷新系统代理。
     private static void applyWindowsProxyUnset() throws Exception {
         String script = """
 $ErrorActionPreference = 'Stop'
@@ -56,26 +53,6 @@ if (-not [WinInetProxyRefresh]::InternetSetOptionW([IntPtr]::Zero, 37, [IntPtr]:
 }
 """;
 
-        ProcessBuilder builder = new ProcessBuilder(List.of(
-                "powershell.exe",
-                "-NoProfile",
-                "-NonInteractive",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-EncodedCommand",
-                encodedPowerShellCommand(script)
-        ));
-        builder.redirectErrorStream(true);
-        Process process = builder.start();
-        String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            throw new IllegalStateException(output.isEmpty() ? "PowerShell exited with code " + exitCode : output);
-        }
-    }
-
-    // PowerShell 的 EncodedCommand 要求使用 UTF-16LE 后再 Base64。
-    private static String encodedPowerShellCommand(String script) {
-        return Base64.getEncoder().encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
+        ElevatedPowerShell.run(script);
     }
 }
