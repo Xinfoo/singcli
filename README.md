@@ -17,6 +17,8 @@ http://127.0.0.1:7897
 
 项目刻意不使用 Maven 或 Gradle。构建过程由一个简单的 Python 脚本调用 JDK 自带工具完成。
 
+仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可直接使用 Java LSP、实时错误检查和调试功能；按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成 `dist/singcli.jar`，运行和调试面板中的 `Debug singcli` 可启动调试。
+
 ## 环境要求
 
 - Java 17 或更新版本

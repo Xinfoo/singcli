@@ -1,7 +1,13 @@
 {
-    "java.project.sourcePaths": ["src"],
+    // 当前源码没有 package 声明，因此每个源码目录都必须作为独立的 source root。
+    "java.project.sourcePaths": [
+        "src/app",
+        "src/commands",
+        "src/support"
+    ],
     "java.project.outputPath": "bin",
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar"
-    ]
+    "java.project.referencedLibraries": [],
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.debug.settings.console": "integratedTerminal"
 }
