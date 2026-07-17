@@ -1,8 +1,9 @@
 ; Build the installer:
 ;   ISCC.exe scripts\build\windows-installer.iss
 ;
-; The installer includes sing-box only when sing-box.exe and all required
-; license files exist under the project root. Otherwise it builds singcli only.
+; The installer includes sing-box only when sing-box.exe, its license notice,
+; and the full GPLv3 text exist. DLL files are included when present.
+; Otherwise it builds singcli only.
 ; Override the package version with /DMyAppVersion=1.2.2.
 
 #define MyAppName "singcli"
@@ -16,11 +17,9 @@
 #define ProjectRoot AddBackslash(SourcePath) + "..\.."
 #define SingBoxDir ProjectRoot + "\sing-box"
 #define SingBoxExe SingBoxDir + "\sing-box.exe"
-#define CronetLibrary SingBoxDir + "\libcronet.dll"
 #define SingBoxLicense SingBoxDir + "\LICENSE"
 #define SingBoxGplLicense SingBoxDir + "\GPL-3.0.txt"
-#define ChromiumLicense SingBoxDir + "\LICENSE-chromium.txt"
-#define IncludeSingBox FileExists(SingBoxExe) && FileExists(CronetLibrary) && FileExists(SingBoxLicense) && FileExists(SingBoxGplLicense) && FileExists(ChromiumLicense)
+#define IncludeSingBox FileExists(SingBoxExe) && FileExists(SingBoxLicense) && FileExists(SingBoxGplLicense)
 
 [Setup]
 AppId={{88D7AA1E-2642-4FF1-A97A-DE6256E6B540}
@@ -73,10 +72,9 @@ Source: "{#ProjectRoot}\scripts\windows\singcli.cmd"; DestDir: "{app}"; Componen
 Source: "{#ProjectRoot}\LICENSE"; DestDir: "{app}"; DestName: "LICENSE-singcli.txt"; Components: core; Flags: ignoreversion
 #if IncludeSingBox
 Source: "{#SingBoxExe}"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion
-Source: "{#CronetLibrary}"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion
+Source: "{#SingBoxDir}\*.dll"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SingBoxLicense}"; DestDir: "{app}"; DestName: "LICENSE-sing-box.txt"; Components: singbox; Flags: ignoreversion
 Source: "{#SingBoxGplLicense}"; DestDir: "{app}"; DestName: "GPL-3.0.txt"; Components: singbox; Flags: ignoreversion
-Source: "{#ChromiumLicense}"; DestDir: "{app}"; DestName: "LICENSE-chromium.txt"; Components: singbox; Flags: ignoreversion
 #endif
 
 [Code]
