@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[2]
 SRC_DIR = ROOT / "src"
 BUILD_DIR = ROOT / "build"
 CLASSES_DIR = BUILD_DIR / "classes"

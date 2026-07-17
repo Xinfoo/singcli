@@ -31,7 +31,7 @@ http://127.0.0.1:7897
 在仓库根目录运行：
 
 ```bash
-python3 build.py
+python3 scripts/build/build.py
 ```
 
 生成的 jar 文件位于：
@@ -45,6 +45,25 @@ dist/singcli.jar
 ```bash
 java -jar dist/singcli.jar
 ```
+
+## Windows 安装包构建
+
+Windows 安装器使用 `scripts/build/windows-installer.iss`，需要先构建
+`dist/singcli.jar`，再通过 Inno Setup 命令行编译器生成安装包：
+
+```powershell
+python scripts\build\build.py
+ISCC.exe scripts\build\windows-installer.iss
+```
+
+生成的安装器位于 `dist\windows`。如果需要把 `sing-box.exe` 及其同目录 DLL
+一起打包，通过 `SingBoxDir` 指定对应目录：
+
+```powershell
+ISCC.exe /DSingBoxDir="C:\path\to\sing-box" scripts\build\windows-installer.iss
+```
+
+安装器支持管理员或当前用户安装、可选添加 PATH，并会在卸载时清理对应 PATH。
 
 ## Windows 安装
 

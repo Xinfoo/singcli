@@ -16,7 +16,6 @@ prepare() {
     rm -rf "$_builddir"
     mkdir -p "$_builddir"
 
-    cp -a "$startdir/build.py" "$_builddir/"
     cp -a "$startdir/src" "$_builddir/"
     cp -a "$startdir/scripts" "$_builddir/"
     cp -a "$startdir/README.md" "$_builddir/"
@@ -25,7 +24,7 @@ prepare() {
 
 build() {
     cd "$_builddir"
-    python build.py
+    python scripts/build/build.py
 }
 
 package() {
