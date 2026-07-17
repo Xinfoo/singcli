@@ -4,7 +4,7 @@
 ; The installer includes sing-box only when sing-box.exe, its license notice,
 ; and the full GPLv3 text exist. DLL files are included when present.
 ; Otherwise it builds singcli only.
-; Override the package version with /DMyAppVersion=1.2.3-alpha1.
+; Override the package version with /DMyAppVersion=1.2.3.
 
 #define MyAppName "singcli"
 #define MyAppPublisher "Xinfoo"
