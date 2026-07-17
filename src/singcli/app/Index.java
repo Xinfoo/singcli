@@ -10,8 +10,8 @@ import singcli.commands.UnsetSystemProxy;
 import java.util.Scanner;
 
 // 交互式首页菜单：让用户选择获取配置、启动、停止或切换节点。
-class Index {
-    static int run(String[] args) {
+public class Index {
+    public static int run(String[] args) {
         // 首页和各个命令共用同一个 Scanner，命令返回后仍可继续读取输入。
         Scanner scanner = ConsoleInput.scanner();
         while (true) {

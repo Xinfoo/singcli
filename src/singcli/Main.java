@@ -1,4 +1,6 @@
-package singcli.app;
+package singcli;
+
+import singcli.app.Index;
 
 import singcli.commands.ConfigGet;
 import singcli.commands.NodeSwitcher;
