@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 
 // 让 Windows Native Image 的标准流编码与当前控制台代码页保持一致。
 public final class ConsoleEncoding {
-    private static final String NATIVE_IMAGE_CODE_PROPERTY = "org.graalvm.nativeimage.imagecode";
     private static final Pattern CODE_PAGE_PATTERN = Pattern.compile("(\\d+)");
 
     private ConsoleEncoding() {
@@ -22,7 +21,7 @@ public final class ConsoleEncoding {
 
     public static void configure() {
         if (!SingBoxProcessManager.isWindows()
-                || !"runtime".equals(System.getProperty(NATIVE_IMAGE_CODE_PROPERTY))) {
+                || !NativeImageRuntime.isActive()) {
             return;
         }
 

@@ -12,7 +12,6 @@ import java.util.Optional;
 public final class AppPaths {
     private static final String APP_DIR_NAME = "singcli";
     private static final String CONFIG_FILE_NAME = "config.json";
-    private static final String NATIVE_IMAGE_CODE_PROPERTY = "org.graalvm.nativeimage.imagecode";
 
     private AppPaths() {
     }
@@ -32,7 +31,7 @@ public final class AppPaths {
 
     // 返回当前程序的安装目录。Native Image 取可执行文件所在目录，JAR 取 JAR 所在目录。
     public static Path installationDirectory() {
-        if ("runtime".equals(System.getProperty(NATIVE_IMAGE_CODE_PROPERTY))) {
+        if (NativeImageRuntime.isActive()) {
             Optional<Path> executableDirectory = nativeExecutableDirectory();
             if (executableDirectory.isPresent()) {
                 return executableDirectory.get();
