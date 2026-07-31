@@ -18,8 +18,8 @@ WINDOWS_ICON_COPY_PATH = BUILD_DIR / "singcli.ico"
 WINDOWS_RESOURCE_SCRIPT_PATH = BUILD_DIR / "singcli.rc"
 WINDOWS_RESOURCE_PATH = BUILD_DIR / "singcli.res"
 DIST_DIR = ROOT / "dist"
-EXECUTABLE_NAME = "singcli.exe" if os.name == "nt" else "singcli"
-EXECUTABLE_PATH = DIST_DIR / EXECUTABLE_NAME
+NATIVE_IMAGE_OUTPUT_PATH = DIST_DIR / "singcli"
+EXECUTABLE_PATH = NATIVE_IMAGE_OUTPUT_PATH.with_suffix(".exe") if os.name == "nt" else NATIVE_IMAGE_OUTPUT_PATH
 MAIN_CLASS = "singcli.Main"
 APP_VERSION = "1.2.4"
 
@@ -64,7 +64,7 @@ def main() -> int:
         native_image_command.append(f"-H:NativeLinkerOption={windows_resource}")
     native_image_command.extend([
         "-jar", str(INPUT_JAR_PATH),
-        "-o", str(EXECUTABLE_PATH),
+        "-o", str(NATIVE_IMAGE_OUTPUT_PATH),
     ])
     run(native_image_command)
 
