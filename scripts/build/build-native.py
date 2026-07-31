@@ -21,7 +21,7 @@ DIST_DIR = ROOT / "dist"
 EXECUTABLE_NAME = "singcli.exe" if os.name == "nt" else "singcli"
 EXECUTABLE_PATH = DIST_DIR / EXECUTABLE_NAME
 MAIN_CLASS = "singcli.Main"
-APP_VERSION = "1.2.3"
+APP_VERSION = "1.2.4"
 
 
 def main() -> int:

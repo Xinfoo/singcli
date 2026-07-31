@@ -14,7 +14,7 @@ MANIFEST_PATH = BUILD_DIR / "MANIFEST.MF"
 DIST_DIR = ROOT / "dist"
 JAR_PATH = DIST_DIR / "singcli.jar"
 MAIN_CLASS = "singcli.Main"
-APP_VERSION = "1.2.3"
+APP_VERSION = "1.2.4"
 
 
 def main() -> int:
