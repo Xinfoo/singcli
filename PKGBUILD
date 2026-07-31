@@ -1,15 +1,16 @@
 # Maintainer: Xinfoo
 pkgname=singcli
-pkgver=1.2.3
-pkgrel=1
+pkgver=1.2.4
+pkgrel=3
 pkgdesc='A lightweight command-line helper for sing-box'
-arch=('any')
+arch=('x86_64')
 url='https://github.com/Xinfoo/singcli'
 license=('MIT')
-depends=('java-runtime>=17' 'sing-box')
-makedepends=('python' 'java-environment')
-source=()
-sha256sums=()
+depends=('glibc' 'sing-box' 'zlib')
+# GraalVM Native Image must be available through GRAALVM_HOME, JAVA_HOME,
+# PATH, or ~/.local/share/graalvm/current.
+makedepends=('gcc' 'python' 'zlib')
+options=('!debug')
 _builddir="$startdir/.makepkg-build/$pkgname-$pkgver"
 
 prepare() {
@@ -24,14 +25,13 @@ prepare() {
 
 build() {
     cd "$_builddir"
-    python scripts/build/build.py
+    python scripts/build-native.py
 }
 
 package() {
     cd "$_builddir"
 
-    install -Dm644 dist/singcli.jar "$pkgdir/opt/singcli/singcli.jar"
-    install -Dm755 scripts/linux/singcli "$pkgdir/usr/bin/singcli"
+    install -Dm755 dist/singcli "$pkgdir/usr/bin/singcli"
     install -Dm644 README.md "$pkgdir/usr/share/doc/singcli/README.md"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

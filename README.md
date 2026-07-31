@@ -15,45 +15,49 @@ http://127.0.0.1:7897
 - 启动和停止 `sing-box`
 - 通过 Clash API 切换 selector 节点
 
-项目刻意不使用 Maven 或 Gradle。构建过程由一个简单的 Python 脚本调用 JDK 自带工具完成。
+项目刻意不使用 Maven 或 Gradle。构建过程由 Python 脚本调用 GraalVM Native Image 或 JDK 自带工具完成。
 
 仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可直接使用 Java LSP、实时错误检查和调试功能；按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成 `dist/singcli.jar`，运行和调试面板中的 `Debug singcli` 可启动调试。
 
 ## 环境要求
 
-- Java 17 或更新版本
 - Python 3
-- `javac` 和 `jar` 已加入 `PATH`
-- `sing-box` 位于 `PATH` 中，或放在生成后的 `singcli.jar` 同目录
+- GraalVM Native Image（包含 `javac`、`jar` 和 `native-image`）
+- Linux 原生构建需要 GCC 和 zlib 开发文件
+- `sing-box` 位于 `PATH` 中，或放在生成后的 singcli 程序同目录
 
 ## 构建
 
 在仓库根目录运行：
 
 ```bash
-python3 scripts/build/build.py
+python3 scripts/build-native.py
 ```
 
-生成的 jar 文件位于：
+脚本依次从 `GRAALVM_HOME`、`JAVA_HOME`、`PATH` 和
+`~/.local/share/graalvm/current` 查找 GraalVM。Linux 下生成的原生程序位于：
 
 ```text
-dist/singcli.jar
+dist/singcli
 ```
 
 运行方式：
 
 ```bash
-java -jar dist/singcli.jar
+./dist/singcli
 ```
+
+如果需要传统 JAR，仍可运行 `python3 scripts/build.py`，它需要 Java 17 或更新版本。
 
 ## Windows 安装包构建
 
-Windows 安装器使用 `scripts/build/windows-installer.iss`，需要先构建
-`dist/singcli.jar`，再通过 Inno Setup 命令行编译器生成安装包：
+Windows 安装器使用 `scripts/windows-installer.iss`，需要先构建
+`dist/singcli.exe`，再通过 Inno Setup 命令行编译器生成安装包：
+构建环境需要 Windows x64 版 GraalVM Native Image、MSVC 和 Inno Setup。
 
 ```powershell
-python scripts\build\build.py
-ISCC.exe scripts\build\windows-installer.iss
+python scripts\build-native.py
+ISCC.exe scripts\windows-installer.iss
 ```
 
 生成的安装器位于 `dist\windows`。只有项目根目录的 `sing-box` 目录中同时存在
@@ -70,41 +74,26 @@ Windows 下统一使用 Inno Setup 生成的安装器。运行 `dist\windows` �
 根据向导选择安装目录、是否包含 sing-box，以及是否将安装目录加入 PATH。卸载时使用
 Windows“已安装的应用”中的 singcli 卸载项。
 
-安装内容仍然需要 Java 17 或更新版本，并且 `java` 位于 PATH 中。
+安装器会安装 GraalVM Native Image 生成的 `singcli.exe`，运行时不需要 Java 或 JDK。
 
-## 命令行调用脚本
+## 命令行调用
 
-Linux 下可以使用 `scripts/linux/singcli` 作为包装脚本，把它放到 `/usr/bin/singcli` 后即可直接运行：
+Arch Linux 软件包会把 GraalVM 生成的原生程序直接安装到 `/usr/bin/singcli`，运行时不需要 Java 或 JDK：
 
 ```bash
 singcli start
 ```
 
-Windows 下可以使用 `scripts/windows/singcli.cmd` 作为包装脚本。普通命令会在当前终端中
-直接运行；只有设置或取消系统代理时才会请求 UAC 授权，并在管理员 PowerShell 中执行。
-默认 jar 路径是：
-
-```text
-C:\Program Files\singcli\singcli.jar
-```
-
-把 `singcli.cmd` 放到 `PATH` 中的目录后，即可在终端运行：
+Windows 安装时如果选择将安装目录加入 PATH，安装后可以直接在终端运行：
 
 ```bat
-singcli start
-```
-
-如果 jar 不在默认路径，可以设置环境变量 `SINGCLI_JAR`：
-
-```bat
-set SINGCLI_JAR=D:\apps\singcli\singcli.jar
 singcli start
 ```
 
 ## 命令
 
 ```bash
-java -jar singcli.jar [command]
+singcli [command]
 ```
 
 可用命令：
@@ -151,59 +140,59 @@ Windows：
 
 启动 `sing-box` 时，singcli 会按以下顺序查找主程序：
 
-1. `singcli.jar` 所在目录
+1. singcli 程序所在目录
 2. `PATH` 中的目录
 
-因此你可以把 `sing-box` 安装到系统路径中，也可以直接把 `sing-box` 可执行文件放到 `singcli.jar` 旁边。
+因此你可以把 `sing-box` 安装到系统路径中，也可以直接把 `sing-box` 可执行文件放到 singcli 程序旁边。
 
 ## 常见用法
 
 获取并规范化配置：
 
 ```bash
-java -jar singcli.jar get
+singcli get
 ```
 
 启动 `sing-box`：
 
 ```bash
-java -jar singcli.jar start
+singcli start
 ```
 
 查看运行状态和当前节点：
 
 ```bash
-java -jar singcli.jar status
+singcli status
 ```
 
 切换节点：
 
 ```bash
-java -jar singcli.jar switch
+singcli switch
 ```
 
 停止 `sing-box`：
 
 ```bash
-java -jar singcli.jar stop
+singcli stop
 ```
 
 设置 Windows 系统代理：
 
 ```bash
-java -jar singcli.jar set
+singcli set
 ```
 
 取消 Windows 系统代理：
 
 ```bash
-java -jar singcli.jar unset
+singcli unset
 ```
 
 查看 singcli 版本号、构建时间和构建 JDK：
 
 ```bash
-java -jar singcli.jar version
+singcli version
 ```
 
 如果同时检测到多个 `sing-box` 进程，`status` 只显示实际监听 Clash API 9090 端口的进程。

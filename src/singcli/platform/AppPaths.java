@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
+import java.util.Optional;
 
 // 统一管理 singcli 自己使用的路径，避免各个命令分别硬编码 config.json 位置。
 public final class AppPaths {
@@ -28,11 +29,18 @@ public final class AppPaths {
         return linuxConfigDirectory();
     }
 
-    // 返回当前程序的安装目录。jar 运行时取 jar 所在目录，开发环境运行 class 时取 class 输出目录。
+    // 返回当前程序的安装目录。Native Image 取可执行文件所在目录，JAR 取 JAR 所在目录。
     public static Path installationDirectory() {
+        if (NativeImageRuntime.isActive()) {
+            Optional<Path> executableDirectory = nativeExecutableDirectory();
+            if (executableDirectory.isPresent()) {
+                return executableDirectory.get();
+            }
+        }
+
         CodeSource codeSource = AppPaths.class.getProtectionDomain().getCodeSource();
         if (codeSource == null) {
-            return Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+            return workingDirectory();
         }
         try {
             Path location = Path.of(codeSource.getLocation().toURI()).toAbsolutePath().normalize();
@@ -42,8 +50,23 @@ public final class AppPaths {
             }
             return location;
         } catch (URISyntaxException e) {
-            return Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+            return workingDirectory();
         }
+    }
+
+    // Native Image 中 CodeSource 不代表原生可执行文件，因此从当前进程命令路径定位安装目录。
+    private static Optional<Path> nativeExecutableDirectory() {
+        return ProcessHandle.current().info().command()
+                .map(Path::of)
+                .map(path -> path.toAbsolutePath().normalize())
+                .map(path -> {
+                    Path parent = path.getParent();
+                    return parent == null ? path : parent;
+                });
+    }
+
+    private static Path workingDirectory() {
+        return Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
     }
 
     // 优先遵循 XDG_CONFIG_HOME；未设置时使用 Linux 常见默认值 ~/.config。

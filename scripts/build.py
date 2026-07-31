@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT / "src"
 BUILD_DIR = ROOT / "build"
 CLASSES_DIR = BUILD_DIR / "classes"
@@ -14,7 +14,7 @@ MANIFEST_PATH = BUILD_DIR / "MANIFEST.MF"
 DIST_DIR = ROOT / "dist"
 JAR_PATH = DIST_DIR / "singcli.jar"
 MAIN_CLASS = "singcli.Main"
-APP_VERSION = "1.2.3"
+APP_VERSION = "1.2.4"
 
 
 def main() -> int:

@@ -10,10 +10,12 @@ import singcli.commands.StatusSingBox;
 import singcli.commands.StopSingBox;
 import singcli.commands.UnsetSystemProxy;
 import singcli.commands.Version;
+import singcli.platform.ConsoleEncoding;
 
 // 程序总入口：根据命令行参数分发到不同功能模块。
 public class Main {
     public static void main(String[] args) {
+        ConsoleEncoding.configure();
         System.exit(run(args));
     }
 
