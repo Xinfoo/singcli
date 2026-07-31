@@ -1,4 +1,5 @@
 ; Build the installer:
+;   python scripts\build\build-native.py
 ;   ISCC.exe scripts\build\windows-installer.iss
 ;
 ; The installer includes sing-box only when sing-box.exe, its license notice,
@@ -45,7 +46,7 @@ PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog commandline
 ChangesEnvironment=yes
 UninstallDisplayName=Singcli
-UninstallDisplayIcon={sys}\cmd.exe
+UninstallDisplayIcon={app}\singcli.exe
 UsePreviousSetupType=no
 
 [Types]
@@ -68,8 +69,7 @@ Name: "core"; Description: "singcli command-line application"; Types: compact cu
 Name: "addtopath"; Description: "Add the installation directory to PATH"; Flags: checkedonce
 
 [Files]
-Source: "{#ProjectRoot}\dist\singcli.jar"; DestDir: "{app}"; Components: core; Flags: ignoreversion
-Source: "{#ProjectRoot}\scripts\windows\singcli.cmd"; DestDir: "{app}"; Components: core; Flags: ignoreversion
+Source: "{#ProjectRoot}\dist\singcli.exe"; DestDir: "{app}"; Components: core; Flags: ignoreversion
 Source: "{#ProjectRoot}\LICENSE"; DestDir: "{app}"; DestName: "LICENSE-singcli.txt"; Components: core; Flags: ignoreversion
 #if IncludeSingBox
 Source: "{#SingBoxExe}"; DestDir: "{app}"; Components: singbox; Flags: ignoreversion

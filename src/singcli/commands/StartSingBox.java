@@ -68,7 +68,7 @@ public final class StartSingBox {
 
     private static List<Path> findSingBoxBinaries() {
         Map<String, Path> candidates = new LinkedHashMap<>();
-        // 优先允许用户把 sing-box 放在 singcli.jar 同目录，便于做成一个便携安装目录。
+        // 优先允许用户把 sing-box 放在 singcli 程序同目录，便于做成一个便携安装目录。
         addCandidate(candidates, AppPaths.installationDirectory().resolve(SingBoxProcessManager.executableName()));
 
         String pathValue = System.getenv("PATH");
