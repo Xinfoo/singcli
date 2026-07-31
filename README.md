@@ -31,7 +31,7 @@ http://127.0.0.1:7897
 在仓库根目录运行：
 
 ```bash
-python3 scripts/build/build-native.py
+python3 scripts/build-native.py
 ```
 
 脚本依次从 `GRAALVM_HOME`、`JAVA_HOME`、`PATH` 和
@@ -47,17 +47,17 @@ dist/singcli
 ./dist/singcli
 ```
 
-如果需要传统 JAR，仍可运行 `python3 scripts/build/build.py`，它需要 Java 17 或更新版本。
+如果需要传统 JAR，仍可运行 `python3 scripts/build.py`，它需要 Java 17 或更新版本。
 
 ## Windows 安装包构建
 
-Windows 安装器使用 `scripts/build/windows-installer.iss`，需要先构建
+Windows 安装器使用 `scripts/windows-installer.iss`，需要先构建
 `dist/singcli.exe`，再通过 Inno Setup 命令行编译器生成安装包：
 构建环境需要 Windows x64 版 GraalVM Native Image、MSVC 和 Inno Setup。
 
 ```powershell
-python scripts\build\build-native.py
-ISCC.exe scripts\build\windows-installer.iss
+python scripts\build-native.py
+ISCC.exe scripts\windows-installer.iss
 ```
 
 生成的安装器位于 `dist\windows`。只有项目根目录的 `sing-box` 目录中同时存在

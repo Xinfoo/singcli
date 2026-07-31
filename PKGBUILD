@@ -1,7 +1,7 @@
 # Maintainer: Xinfoo
 pkgname=singcli
 pkgver=1.2.4
-pkgrel=1
+pkgrel=2
 pkgdesc='A lightweight command-line helper for sing-box'
 arch=('x86_64')
 url='https://github.com/Xinfoo/singcli'
@@ -25,7 +25,7 @@ prepare() {
 
 build() {
     cd "$_builddir"
-    python scripts/build/build-native.py
+    python scripts/build-native.py
 }
 
 package() {

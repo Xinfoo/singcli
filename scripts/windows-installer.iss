@@ -1,6 +1,6 @@
 ; Build the installer:
-;   python scripts\build\build-native.py
-;   ISCC.exe scripts\build\windows-installer.iss
+;   python scripts\build-native.py
+;   ISCC.exe scripts\windows-installer.iss
 ;
 ; The installer includes sing-box only when sing-box.exe, its license notice,
 ; and the full GPLv3 text exist. DLL files are included when present.
@@ -15,7 +15,7 @@
   #define MyAppVersion "1.2.4"
 #endif
 
-#define ProjectRoot AddBackslash(SourcePath) + "..\.."
+#define ProjectRoot AddBackslash(SourcePath) + ".."
 #define SingBoxDir ProjectRoot + "\sing-box"
 #define SingBoxExe SingBoxDir + "\sing-box.exe"
 #define SingBoxLicense SingBoxDir + "\LICENSE"

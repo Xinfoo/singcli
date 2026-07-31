@@ -9,7 +9,7 @@
                 "command": "python"
             },
             "args": [
-                "${workspaceFolder}/scripts/build/build.py"
+                "${workspaceFolder}/scripts/build.py"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

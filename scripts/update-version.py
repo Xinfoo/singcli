@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 VERSION_PATTERN = re.compile(r"[0-9A-Za-z][0-9A-Za-z.+_]*")
 
 
@@ -22,17 +22,17 @@ def main() -> int:
         ROOT / "PKGBUILD": [
             (r"(?m)^(pkgver=)[^\r\n]+$", rf"\g<1>{version}"),
         ],
-        ROOT / "scripts/build/windows-installer.iss": [
+        ROOT / "scripts/windows-installer.iss": [
             (
                 r"(?m)^(; Override the package version with /DMyAppVersion=)[^.\s]+(?:\.[^.\s]+)*\.$",
                 rf"\g<1>{version}.",
             ),
             (r'(?m)^(\s*#define MyAppVersion ")[^"]+("\s*)$', rf"\g<1>{version}\g<2>"),
         ],
-        ROOT / "scripts/build/build.py": [
+        ROOT / "scripts/build.py": [
             (r'(?m)^(APP_VERSION = ")[^"]+("\s*)$', rf"\g<1>{version}\g<2>"),
         ],
-        ROOT / "scripts/build/build-native.py": [
+        ROOT / "scripts/build-native.py": [
             (r'(?m)^(APP_VERSION = ")[^"]+("\s*)$', rf"\g<1>{version}\g<2>"),
         ],
     }
