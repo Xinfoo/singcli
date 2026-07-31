@@ -32,6 +32,9 @@ def main() -> int:
         ROOT / "scripts/build/build.py": [
             (r'(?m)^(APP_VERSION = ")[^"]+("\s*)$', rf"\g<1>{version}\g<2>"),
         ],
+        ROOT / "scripts/build/build-native.py": [
+            (r'(?m)^(APP_VERSION = ")[^"]+("\s*)$', rf"\g<1>{version}\g<2>"),
+        ],
     }
 
     updated_contents: dict[Path, str] = {}
