@@ -60,6 +60,7 @@ def main() -> int:
         "-Os",
     ]
     if os.name == "nt":
+        native_image_command.append("-H:+AddAllCharsets")
         windows_resource = compile_windows_resources()
         native_image_command.append(f"-H:NativeLinkerOption={windows_resource}")
     native_image_command.extend([
