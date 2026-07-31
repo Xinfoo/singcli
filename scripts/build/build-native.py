@@ -13,6 +13,10 @@ BUILD_DIR = ROOT / "build" / "native"
 CLASSES_DIR = BUILD_DIR / "classes"
 MANIFEST_PATH = BUILD_DIR / "MANIFEST.MF"
 INPUT_JAR_PATH = BUILD_DIR / "singcli.jar"
+ICON_PATH = ROOT / "icon" / "singcli.ico"
+WINDOWS_ICON_COPY_PATH = BUILD_DIR / "singcli.ico"
+WINDOWS_RESOURCE_SCRIPT_PATH = BUILD_DIR / "singcli.rc"
+WINDOWS_RESOURCE_PATH = BUILD_DIR / "singcli.res"
 DIST_DIR = ROOT / "dist"
 EXECUTABLE_NAME = "singcli.exe" if os.name == "nt" else "singcli"
 EXECUTABLE_PATH = DIST_DIR / EXECUTABLE_NAME
@@ -48,15 +52,21 @@ def main() -> int:
         "cfm", str(INPUT_JAR_PATH), str(MANIFEST_PATH),
         "-C", str(CLASSES_DIR), ".",
     ])
-    run([
+    native_image_command = [
         str(native_image),
         "--enable-http",
         "--enable-https",
         "-march=compatibility",
         "-Os",
+    ]
+    if os.name == "nt":
+        windows_resource = compile_windows_resources()
+        native_image_command.append(f"-H:NativeLinkerOption={windows_resource}")
+    native_image_command.extend([
         "-jar", str(INPUT_JAR_PATH),
         "-o", str(EXECUTABLE_PATH),
     ])
+    run(native_image_command)
 
     print(f"Built native executable: {EXECUTABLE_PATH}")
     return 0
@@ -99,6 +109,52 @@ def tool_file_names(name: str) -> list[str]:
     return [name + ".exe"]
 
 
+def compile_windows_resources() -> Path:
+    if not ICON_PATH.is_file():
+        raise RuntimeError(f"Windows application icon was not found: {ICON_PATH}")
+
+    resource_compiler = find_windows_resource_compiler()
+    shutil.copy2(ICON_PATH, WINDOWS_ICON_COPY_PATH)
+    WINDOWS_RESOURCE_SCRIPT_PATH.write_text('1 ICON "singcli.ico"\n', encoding="ascii")
+    run([
+        str(resource_compiler),
+        "/nologo",
+        "/fo", str(WINDOWS_RESOURCE_PATH),
+        str(WINDOWS_RESOURCE_SCRIPT_PATH),
+    ], cwd=BUILD_DIR)
+    return WINDOWS_RESOURCE_PATH.resolve()
+
+
+def find_windows_resource_compiler() -> Path:
+    path_command = shutil.which("rc.exe") or shutil.which("rc")
+    if path_command:
+        return Path(path_command).resolve()
+
+    candidates = []
+    sdk_bin = os.environ.get("WindowsSdkVerBinPath")
+    if sdk_bin:
+        candidates.append(Path(sdk_bin) / "x64" / "rc.exe")
+
+    sdk_dir = os.environ.get("WindowsSdkDir")
+    if sdk_dir:
+        candidates.extend(sorted((Path(sdk_dir) / "bin").glob("*/x64/rc.exe"), reverse=True))
+
+    program_files_x86 = os.environ.get("ProgramFiles(x86)")
+    if program_files_x86:
+        windows_kits_bin = Path(program_files_x86) / "Windows Kits" / "10" / "bin"
+        candidates.extend(sorted(windows_kits_bin.glob("*/x64/rc.exe"), reverse=True))
+
+    for candidate in candidates:
+        if candidate.is_file():
+            print(f"Using Windows resource compiler: {candidate}", flush=True)
+            return candidate.resolve()
+
+    raise RuntimeError(
+        "Windows resource compiler rc.exe was not found. "
+        "Install the Windows SDK or run the build from an x64 Native Tools command prompt."
+    )
+
+
 def clean() -> None:
     for path in (BUILD_DIR, DIST_DIR):
         if path.exists():
@@ -135,9 +191,9 @@ def command_output(command: list[str], default: str) -> str:
     return output if result.returncode == 0 and output else default
 
 
-def run(command: list[str]) -> None:
+def run(command: list[str], cwd: Path = ROOT) -> None:
     print("+ " + " ".join(command), flush=True)
-    subprocess.run(command, cwd=ROOT, check=True)
+    subprocess.run(command, cwd=cwd, check=True)
 
 
 if __name__ == "__main__":
