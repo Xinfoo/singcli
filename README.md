@@ -15,15 +15,15 @@ http://127.0.0.1:7897
 - 启动和停止 `sing-box`
 - 通过 Clash API 切换 selector 节点
 
-项目刻意不使用 Maven 或 Gradle。构建过程由一个简单的 Python 脚本调用 JDK 自带工具完成。
+项目刻意不使用 Maven 或 Gradle。构建过程由 Python 脚本调用 GraalVM Native Image 或 JDK 自带工具完成。
 
 仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可直接使用 Java LSP、实时错误检查和调试功能；按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成 `dist/singcli.jar`，运行和调试面板中的 `Debug singcli` 可启动调试。
 
 ## 环境要求
 
-- Java 17 或更新版本
 - Python 3
-- `javac` 和 `jar` 已加入 `PATH`
+- GraalVM Native Image（包含 `javac`、`jar` 和 `native-image`）
+- Linux 原生构建需要 GCC 和 zlib 开发文件
 - `sing-box` 位于 `PATH` 中，或放在生成后的 singcli 程序同目录
 
 ## 构建
@@ -31,20 +31,23 @@ http://127.0.0.1:7897
 在仓库根目录运行：
 
 ```bash
-python3 scripts/build/build.py
+python3 scripts/build/build-native.py
 ```
 
-生成的 jar 文件位于：
+脚本依次从 `GRAALVM_HOME`、`JAVA_HOME`、`PATH` 和
+`~/.local/share/graalvm/current` 查找 GraalVM。Linux 下生成的原生程序位于：
 
 ```text
-dist/singcli.jar
+dist/singcli
 ```
 
 运行方式：
 
 ```bash
-java -jar dist/singcli.jar
+./dist/singcli
 ```
+
+如果需要传统 JAR，仍可运行 `python3 scripts/build/build.py`，它需要 Java 17 或更新版本。
 
 ## Windows 安装包构建
 
@@ -73,9 +76,9 @@ Windows“已安装的应用”中的 singcli 卸载项。
 
 安装器会安装 GraalVM Native Image 生成的 `singcli.exe`，运行时不需要 Java 或 JDK。
 
-## 命令行调用脚本
+## 命令行调用
 
-Linux 下可以使用 `scripts/linux/singcli` 作为包装脚本，把它放到 `/usr/bin/singcli` 后即可直接运行：
+Arch Linux 软件包会把 GraalVM 生成的原生程序直接安装到 `/usr/bin/singcli`，运行时不需要 Java 或 JDK：
 
 ```bash
 singcli start
@@ -90,12 +93,6 @@ singcli start
 ## 命令
 
 ```bash
-java -jar singcli.jar [command]
-```
-
-Windows 原生安装版可以直接运行：
-
-```bat
 singcli [command]
 ```
 
@@ -143,7 +140,7 @@ Windows：
 
 启动 `sing-box` 时，singcli 会按以下顺序查找主程序：
 
-1. `singcli.jar` 或 `singcli.exe` 所在目录
+1. singcli 程序所在目录
 2. `PATH` 中的目录
 
 因此你可以把 `sing-box` 安装到系统路径中，也可以直接把 `sing-box` 可执行文件放到 singcli 程序旁边。
@@ -153,49 +150,49 @@ Windows：
 获取并规范化配置：
 
 ```bash
-java -jar singcli.jar get
+singcli get
 ```
 
 启动 `sing-box`：
 
 ```bash
-java -jar singcli.jar start
+singcli start
 ```
 
 查看运行状态和当前节点：
 
 ```bash
-java -jar singcli.jar status
+singcli status
 ```
 
 切换节点：
 
 ```bash
-java -jar singcli.jar switch
+singcli switch
 ```
 
 停止 `sing-box`：
 
 ```bash
-java -jar singcli.jar stop
+singcli stop
 ```
 
 设置 Windows 系统代理：
 
 ```bash
-java -jar singcli.jar set
+singcli set
 ```
 
 取消 Windows 系统代理：
 
 ```bash
-java -jar singcli.jar unset
+singcli unset
 ```
 
 查看 singcli 版本号、构建时间和构建 JDK：
 
 ```bash
-java -jar singcli.jar version
+singcli version
 ```
 
 如果同时检测到多个 `sing-box` 进程，`status` 只显示实际监听 Clash API 9090 端口的进程。
