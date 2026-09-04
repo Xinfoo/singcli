@@ -8,7 +8,7 @@ url='https://github.com/Xinfoo/singcli'
 license=('MIT')
 depends=('glibc' 'sing-box' 'zlib')
 # GraalVM Native Image must be available through GRAALVM_HOME, JAVA_HOME,
-# PATH, or ~/.local/share/graalvm/current.
+# PATH, or ~/.local/lib/jvm/current/
 makedepends=('gcc' 'python' 'zlib')
 options=('!debug')
 _builddir="$startdir/.makepkg-build/$pkgname-$pkgver"

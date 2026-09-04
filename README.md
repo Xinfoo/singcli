@@ -35,7 +35,7 @@ python3 scripts/build-native.py
 ```
 
 脚本依次从 `GRAALVM_HOME`、`JAVA_HOME`、`PATH` 和
-`~/.local/share/graalvm/current` 查找 GraalVM。Linux 下生成的原生程序位于：
+`~/.local/lib/jvm/current/` 查找 GraalVM。Linux 下生成的原生程序位于：
 
 ```text
 dist/singcli

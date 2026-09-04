@@ -84,7 +84,7 @@ def find_graalvm_home() -> Path:
     if native_image:
         candidates.append(Path(native_image).absolute().parent.parent)
 
-    candidates.append(Path.home() / ".local" / "share" / "graalvm" / "current")
+    candidates.append(Path.home() / ".local" / "lib" / "jvm" / "current")
     for candidate in candidates:
         home = candidate.expanduser().resolve()
         if all(graalvm_tool(home, name).is_file() for name in ("javac", "jar", "native-image")):
