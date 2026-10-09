@@ -37,6 +37,10 @@ public final class SingBoxProcessManager {
         return System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win");
     }
 
+    public static boolean isLinux() {
+        return "Linux".equalsIgnoreCase(System.getProperty("os.name"));
+    }
+
     public static boolean isListeningOnTcpPort(ProcessHandle process, int port) {
         return TcpPortInspector.isListening(process, port);
     }

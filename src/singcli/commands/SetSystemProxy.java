@@ -3,13 +3,14 @@ package singcli.commands;
 import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.platform.ElevatedPowerShell;
+import singcli.platform.KdeSystemProxy;
 import singcli.process.SingBoxProcessManager;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-// Windows 系统代理设置命令：读取 singcli 配置中的本地代理地址并写入当前用户注册表。
+// 系统代理设置命令：读取本地代理地址，写入 Windows 注册表或 Linux KDE 配置。
 public final class SetSystemProxy {
     private static final Path CONFIG_PATH = AppPaths.configPath();
 
@@ -17,8 +18,8 @@ public final class SetSystemProxy {
     }
 
     public static int run(String[] args) {
-        if (!SingBoxProcessManager.isWindows()) {
-            System.err.println("Set system proxy is only supported on Windows.");
+        if (!SingBoxProcessManager.isWindows() && !SingBoxProcessManager.isLinux()) {
+            System.err.println("Set system proxy is only supported on Windows and Linux KDE (kwriteconfig6).");
             return 1;
         }
 
@@ -29,8 +30,13 @@ public final class SetSystemProxy {
 
             String config = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
             String proxyAddress = SingBoxConfig.localProxyAddress(config);
-            applyWindowsProxy(proxyAddress);
-            System.out.println("Windows system proxy enabled: " + proxyAddress);
+            if (SingBoxProcessManager.isWindows()) {
+                applyWindowsProxy(proxyAddress);
+                System.out.println("Windows system proxy enabled: " + proxyAddress);
+            } else {
+                KdeSystemProxy.set(proxyAddress);
+                System.out.println("Linux KDE system proxy enabled: " + proxyAddress);
+            }
             return 0;
         } catch (Exception e) {
             System.err.println("Set system proxy failed: " + SingBoxProcessManager.errorMessage(e));

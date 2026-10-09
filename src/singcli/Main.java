@@ -62,8 +62,8 @@ public class Main {
         System.out.println("  status   Show sing-box process and current node");
         System.out.println("  switch   Switch node");
         System.out.println("  stop     Stop sing-box");
-        System.out.println("  set      Set Windows system proxy");
-        System.out.println("  unset    Unset Windows system proxy");
+        System.out.println("  set      Set system proxy");
+        System.out.println("  unset    Unset system proxy");
         System.out.println("  version  Show version and build information");
         System.out.println("  help     Show this help message");
         System.out.println();

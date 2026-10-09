@@ -47,7 +47,7 @@ public final class SingBoxConfig {
         return new ConfigView(selector.tag(), selector.nodes(), controller, secret);
     }
 
-    // 读取第一个本地入站地址，供 Windows 系统代理设置使用。
+    // 读取第一个本地入站地址，供系统代理设置使用。
     public static String localProxyAddress(String json) {
         JsonObjectFields.FieldLocation inbounds = JsonObjectFields.findField(json, "inbounds");
         if (inbounds == null || json.charAt(inbounds.valueStart()) != '[') {

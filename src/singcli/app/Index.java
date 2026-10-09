@@ -62,8 +62,8 @@ public class Index {
         System.out.println("3. Show sing-box status");
         System.out.println("4. Switch node");
         System.out.println("5. Stop sing-box");
-        System.out.println("6. Set Windows system proxy");
-        System.out.println("7. Unset Windows system proxy");
+        System.out.println("6. Set system proxy");
+        System.out.println("7. Unset system proxy");
         System.out.println("8. Show version and build information");
         System.out.println();
     }
