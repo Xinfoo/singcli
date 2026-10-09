@@ -1,7 +1,7 @@
 # Maintainer: Xinfoo
 pkgname=singcli
-pkgver=1.2.4
-pkgrel=3
+pkgver=1.2.5
+pkgrel=1
 pkgdesc='A lightweight command-line helper for sing-box'
 arch=('x86_64')
 url='https://github.com/Xinfoo/singcli'
