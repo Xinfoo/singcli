@@ -24,6 +24,7 @@ http://127.0.0.1:7897
 - Python 3
 - GraalVM Native Image（包含 `javac`、`jar` 和 `native-image`）
 - Linux 原生构建需要 GCC 和 zlib 开发文件
+- Linux 系统代理设置仅支持 KDE Plasma 6，需要 `kwriteconfig6` 位于 `PATH` 中
 - `sing-box` 位于 `PATH` 中，或放在生成后的 singcli 程序同目录
 
 ## 构建
@@ -104,8 +105,8 @@ start    启动 sing-box
 status   显示 sing-box 进程状态和当前节点
 switch   切换节点
 stop     停止 sing-box
-set      设置 Windows 系统代理
-unset    取消 Windows 系统代理
+set      设置系统代理
+unset    取消系统代理
 version  显示 singcli 版本号和构建信息
 help     显示帮助信息
 ```
@@ -177,13 +178,13 @@ singcli switch
 singcli stop
 ```
 
-设置 Windows 系统代理：
+设置系统代理：
 
 ```bash
 singcli set
 ```
 
-取消 Windows 系统代理：
+取消系统代理：
 
 ```bash
 singcli unset
@@ -201,8 +202,9 @@ singcli version
 
 - `switch` 命令依赖写入 `config.json` 的 Clash API。
 - 默认本地代理地址是 `http://127.0.0.1:7897`，需要代理的应用可以手动使用这个地址。
-- `set` 命令只在 Windows 下工作，会把配置里的本地代理地址写入当前用户的系统代理注册表，并刷新系统代理设置。
-- `unset` 命令只在 Windows 下工作，会关闭当前用户的系统代理、清理自动配置 URL，并刷新系统代理设置。
+- Windows 下，`set` 会把配置里的本地代理地址写入当前用户的系统代理注册表，并刷新系统代理设置；`unset` 会关闭系统代理、清理自动配置 URL，并刷新设置。
+- Linux 下，`set` 仅调用 `kwriteconfig6`，在当前用户的 `kioslaverc` 中写入 HTTP、HTTPS、SOCKS 代理地址和本地/私网绕过列表，并设置 `ProxyType=1`；`unset` 仅设置 `ProxyType=0`，无需配置文件。
+- Linux 系统代理仅在执行 `set` / `unset` 时写入，不提供其它桌面适配、代理守护或旧设置备份恢复；关闭后保留已写入的代理地址和绕过列表。
 - 如果检测到多个 `sing-box` 进程，`switch` 会要求用户选择要操作的进程。
 - `switch` 会检查选中的进程是否正在使用 singcli 管理的同一个 `config.json`。如果不一致，会中止切换，但不会停止该进程。
 - 在 Windows 上，如果 `sing-box` 由 singcli 启动，或启动时使用绝对配置路径，配置路径校验最可靠。
