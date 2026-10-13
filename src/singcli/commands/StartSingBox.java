@@ -1,11 +1,13 @@
 package singcli.commands;
 
 import singcli.app.ConsoleInput;
+import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.process.SingBoxProcessManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -52,6 +54,7 @@ public final class StartSingBox {
             Path singBox = chooseSingBox(scanner, candidates);
             startSingBox(singBox);
             System.out.println("sing-box started.");
+            System.out.println("Log file: " + AppPaths.singBoxLogPath());
             return 0;
         } catch (Exception e) {
             System.err.println("Start failed: " + SingBoxProcessManager.errorMessage(e));
@@ -129,6 +132,14 @@ public final class StartSingBox {
 
     private static void startSingBox(Path singBox) throws IOException {
         Path config = CONFIG_PATH.toAbsolutePath().normalize();
+        Path logFile = AppPaths.singBoxLogPath();
+        Files.createDirectories(logFile.getParent());
+        // 已有配置也统一日志选项，避免 disabled 或 output 让重定向收不到正常日志。
+        String originalConfig = Files.readString(config, StandardCharsets.UTF_8);
+        String updatedConfig = SingBoxConfig.normalizeLogConfig(originalConfig);
+        if (!updatedConfig.equals(originalConfig)) {
+            Files.writeString(config, updatedConfig, StandardCharsets.UTF_8);
+        }
         ProcessBuilder builder = new ProcessBuilder(
                 singBox.toString(),
                 "run",
@@ -137,9 +148,9 @@ public final class StartSingBox {
         );
         // 进程工作目录放在配置目录，方便配置里使用相对资源路径。
         builder.directory(AppPaths.configDirectory().toFile());
-        // 当前工具不接管 sing-box 日志，启动输出直接丢弃。
-        builder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
-        builder.redirectError(ProcessBuilder.Redirect.DISCARD);
+        // 子进程直接向日志文件追加输出，singcli 无需常驻读取或转发。
+        builder.redirectErrorStream(true);
+        builder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
         builder.start();
     }
 }

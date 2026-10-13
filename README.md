@@ -13,6 +13,7 @@ http://127.0.0.1:7897
 - 获取远程 sing-box 配置并生成规范化后的 `config.json`
 - 自动补齐本工具需要的 mixed inbound 和 Clash API 配置
 - 启动和停止 `sing-box`
+- 将 `sing-box` 的标准输出和错误输出追加到 `sing-box.log`
 - 通过 Clash API 切换 selector 节点
 
 项目刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
@@ -136,6 +137,31 @@ Windows：
 ```
 
 `get`、`start` 和 `switch` 命令都会使用同一个配置文件路径。
+
+## sing-box 日志
+
+`start` 会自动创建日志目录，将 sing-box 的标准输出和错误输出合并追加到日志文件。
+
+Linux：
+
+```text
+~/.local/state/singcli/sing-box.log
+```
+
+Windows：
+
+```text
+%LOCALAPPDATA%\singcli\sing-box.log
+```
+
+Windows 默认对应 `C:\Users\<用户名>\AppData\Local\singcli\sing-box.log`。
+
+`get` 和 `start` 会将配置中的 `log` 统一为启用日志、`info` 级别、带时间戳，并移除
+原来的 `log.output`，让正常日志进入启动时的输出重定向。`start` 同样处理已有配置，
+无需重新获取配置。启动后会显示日志文件路径。
+
+日志由 sing-box 进程直接写入文件，singcli 退出后仍会继续记录，不需要常驻守护进程。
+每次启动会保留并追加已有日志，目前不提供日志轮转或自动清理。
 
 ## sing-box 查找规则
 

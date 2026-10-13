@@ -17,6 +17,11 @@ public final class SingBoxConfig {
         return ConfigNormalizer.normalize(json);
     }
 
+    // start 也处理已有配置，确保无需重新 get 就能将日志交给标准流重定向。
+    public static String normalizeLogConfig(String json) {
+        return ConfigNormalizer.normalizeLogConfig(json);
+    }
+
     // 提取 selector、节点列表、Clash API 地址和 secret。
     public static ConfigView readConfigView(String json) {
         JsonObjectFields.FieldLocation outbounds = JsonObjectFields.findField(json, "outbounds");

@@ -4,6 +4,13 @@ import singcli.json.JsonObjectFields;
 
 // 把下载的 sing-box 配置调整为 singcli 所需的入站和 Clash API 结构。
 final class ConfigNormalizer {
+    private static final String LOG_VALUE = """
+{
+    "disabled": false,
+    "level": "info",
+    "timestamp": true
+  }""";
+
     private static final String INBOUNDS_VALUE = """
 [
     {
@@ -32,7 +39,12 @@ final class ConfigNormalizer {
     }
 
     static String normalize(String json) {
-        return ensureClashApi(replaceInbounds(json));
+        return normalizeLogConfig(ensureClashApi(replaceInbounds(json)));
+    }
+
+    // 启用带时间戳的控制台日志，移除原配置中的 output，让启动重定向统一接收日志。
+    static String normalizeLogConfig(String json) {
+        return JsonObjectFields.replaceOrAddField(json, "log", LOG_VALUE, "  ");
     }
 
     private static String replaceInbounds(String json) {
