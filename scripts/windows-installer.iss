@@ -1,5 +1,5 @@
 ; Build the installer:
-;   python scripts\build-native.py
+;   python scripts\build.py
 ;   ISCC.exe scripts\windows-installer.iss
 ;
 ; The installer includes sing-box only when sing-box.exe, its license notice,

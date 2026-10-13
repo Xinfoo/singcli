@@ -25,7 +25,7 @@ prepare() {
 
 build() {
     cd "$_builddir"
-    python scripts/build-native.py
+    python scripts/build.py
 }
 
 package() {

@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Java: Build singcli.jar",
+            "label": "GraalVM: Build singcli",
             "type": "process",
             "command": "python3",
             "windows": {
@@ -36,17 +36,16 @@
             }
         },
         {
-            "label": "Java: Run singcli.jar",
+            "label": "GraalVM: Run singcli",
             "type": "process",
-            "command": "java",
-            "args": [
-                "-jar",
-                "${workspaceFolder}/dist/singcli.jar"
-            ],
+            "command": "${workspaceFolder}/dist/singcli",
+            "windows": {
+                "command": "${workspaceFolder}/dist/singcli.exe"
+            },
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "dependsOn": "Java: Build singcli.jar",
+            "dependsOn": "GraalVM: Build singcli",
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",

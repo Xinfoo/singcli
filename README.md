@@ -15,9 +15,9 @@ http://127.0.0.1:7897
 - 启动和停止 `sing-box`
 - 通过 Clash API 切换 selector 节点
 
-项目刻意不使用 Maven 或 Gradle。构建过程由 Python 脚本调用 GraalVM Native Image 或 JDK 自带工具完成。
+项目刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
 
-仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可直接使用 Java LSP、实时错误检查和调试功能；按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成 `dist/singcli.jar`，运行和调试面板中的 `Debug singcli` 可启动调试。
+仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可直接使用 Java LSP、实时错误检查和源码调试功能；按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成原生程序，`GraalVM: Run singcli` 任务会先构建再运行原生程序。运行和调试面板中的 `Debug singcli` 用于 JVM 下的 Java 源码调试。
 
 ## 环境要求
 
@@ -32,7 +32,7 @@ http://127.0.0.1:7897
 在仓库根目录运行：
 
 ```bash
-python3 scripts/build-native.py
+python3 scripts/build.py
 ```
 
 脚本依次从 `GRAALVM_HOME`、`JAVA_HOME`、`PATH` 和
@@ -48,7 +48,7 @@ dist/singcli
 ./dist/singcli
 ```
 
-如果需要传统 JAR，仍可运行 `python3 scripts/build.py`，它需要 Java 17 或更新版本。
+Windows 下生成 `dist/singcli.exe`。构建过程中生成的 `build/native/singcli.jar` 仅作为 Native Image 的中间输入，`dist` 中只输出原生程序，运行时不需要 Java 或 JDK。
 
 ## Windows 安装包构建
 
@@ -57,7 +57,7 @@ Windows 安装器使用 `scripts/windows-installer.iss`，需要先构建
 构建环境需要 Windows x64 版 GraalVM Native Image、MSVC 和 Inno Setup。
 
 ```powershell
-python scripts\build-native.py
+python scripts\build.py
 ISCC.exe scripts\windows-installer.iss
 ```
 
