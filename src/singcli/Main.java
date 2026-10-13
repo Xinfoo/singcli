@@ -1,5 +1,7 @@
 package singcli;
 
+import singcli.app.AppLog;
+import singcli.app.BuildInfo;
 import singcli.app.Index;
 
 import singcli.commands.ConfigGet;
@@ -12,11 +14,25 @@ import singcli.commands.UnsetSystemProxy;
 import singcli.commands.Version;
 import singcli.platform.ConsoleEncoding;
 
+import java.util.Locale;
+
 // 程序总入口：根据命令行参数分发到不同功能模块。
 public class Main {
     public static void main(String[] args) {
         ConsoleEncoding.configure();
-        System.exit(run(args));
+        AppLog.info("app.started", "mode", args.length == 0 ? "interactive" : "command",
+                "argument_count", args.length, "version", BuildInfo.load().version(),
+                "os", System.getProperty("os.name"));
+        int exitCode = 1;
+        try {
+            exitCode = run(args);
+        } catch (RuntimeException | Error exception) {
+            AppLog.error("app.unhandled_error", exception);
+            throw exception;
+        } finally {
+            AppLog.info("app.exited", "exit_code", exitCode, "result", exitCode == 0 ? "SUCCESS" : "FAILED");
+        }
+        System.exit(exitCode);
     }
 
     private static int run(String[] args) {
@@ -27,12 +43,15 @@ public class Main {
 
         // 当前只接受一个命令参数，多余参数直接打印用法并失败退出。
         if (args.length != 1) {
+            AppLog.failure("command.invalid_arguments", "argument_count", args.length,
+                    "result", "FAILED", "exit_code", 1);
             printUsage();
             return 1;
         }
 
         // 按命令名称调用对应功能；help 和未知命令只打印用法。
-        return switch (args[0].toLowerCase()) {
+        String command = args[0].toLowerCase(Locale.ROOT);
+        return AppLog.command(command, () -> switch (command) {
             case "get" -> ConfigGet.run(new String[0]);
             case "start" -> StartSingBox.run(new String[0]);
             case "status" -> StatusSingBox.runDirect(new String[0]);
@@ -46,10 +65,11 @@ public class Main {
                 yield 0;
             }
             default -> {
+                AppLog.failure("command.unknown", "input", command);
                 printUsage();
                 yield 1;
             }
-        };
+        });
     }
 
     // 输出命令行用法，退出码由 main 统一处理。

@@ -1,6 +1,7 @@
 package singcli.commands;
 
 import singcli.app.ConsoleInput;
+import singcli.app.AppLog;
 import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.process.SingBoxProcessManager;
@@ -26,6 +27,7 @@ public final class NodeSwitcher {
     }
 
     public static int run(String[] args) {
+        String apiSecret = null;
         // 主流程统一放在 try 块中，失败时打印原因并返回非零退出码。
         try {
             Scanner scanner = ConsoleInput.scanner();
@@ -45,31 +47,42 @@ public final class NodeSwitcher {
             if (!ensureProcessUsesConfig(process, currentConfig, selection.onlyProcess() && SingBoxProcessManager.isWindows())) {
                 return 0;
             }
+            AppLog.info("node.config.read", "path", currentConfig, "pid", process.pid());
             // 解析配置，得到 selector tag、候选节点、Clash API 地址和 secret。
             String config = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
             SingBoxConfig.ConfigView view = SingBoxConfig.readConfigView(config);
+            apiSecret = view.secret();
             // 查询当前节点，查询失败时本次切换不能继续。
             Optional<String> currentNode = queryCurrentNode(view);
             if (currentNode.isEmpty()) {
                 throw new IllegalStateException("Could not read the current node");
             }
             String current = currentNode.get();
+            AppLog.info("node.list.displayed", "selector", view.selectorTag(),
+                    "current_node", current, "node_count", view.nodes().size());
             printNodeList(view.nodes(), current);
 
             // 用户输入节点编号；空输入表示只查看节点列表并退出。
             System.out.print("Select a node number, or press Enter to exit: ");
             String choice = scanner.nextLine().trim();
+            AppLog.info("node.selection", "choice", choice);
             if (choice.isEmpty()) {
+                AppLog.cancelled("node.switch.cancelled", "reason", "no_node_selected");
                 return 0;
             }
 
             // 把编号转换为节点名，再调用 Clash API 完成切换。
             int index = parseChoice(choice, view.nodes().size());
             String target = view.nodes().get(index - 1);
+            AppLog.info("node.switch.requested", "selector", view.selectorTag(),
+                    "previous_node", current, "target_node", target);
             switchNode(view, target);
+            AppLog.info("node.switched", "selector", view.selectorTag(),
+                    "previous_node", current, "target_node", target);
             System.out.println("Switched to: " + target);
             return 0;
         } catch (Exception e) {
+            AppLog.errorRedacted("node.switch.failed", e, apiSecret);
             System.err.println("Switch failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
@@ -78,6 +91,8 @@ public final class NodeSwitcher {
     // 搜索运行中的 sing-box 进程；多个进程时要求用户明确选择。
     private static Optional<ProcessSelection> chooseSingBoxProcess(Scanner scanner) {
         List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
+        AppLog.info("singbox.processes.detected", "count", running.size(),
+                "pids", SingBoxProcessManager.processIds(running));
         if (running.isEmpty()) {
             throw new IllegalStateException("No running sing-box process was detected.");
         }
@@ -86,6 +101,7 @@ public final class NodeSwitcher {
             ProcessHandle process = running.get(0);
             System.out.println("Detected a sing-box process:");
             SingBoxProcessManager.printProcessTable(running);
+            AppLog.info("node.process.selected", "pid", process.pid(), "selection", "automatic");
             return Optional.of(new ProcessSelection(process, true));
         }
 
@@ -94,8 +110,10 @@ public final class NodeSwitcher {
         SingBoxProcessManager.printIndexedProcessTable(running);
         System.out.print("Enter the process number to operate on, or press Enter to exit: ");
         String choice = scanner.nextLine().trim();
+        AppLog.info("node.process.selection", "choice", choice);
         // 空输入表示用户取消切换操作。
         if (choice.isEmpty()) {
+            AppLog.cancelled("node.switch.cancelled", "reason", "no_process_selected");
             System.out.println("Exited.");
             return Optional.empty();
         }
@@ -103,6 +121,7 @@ public final class NodeSwitcher {
             // 输入必须是列表范围内的编号。
             int index = Integer.parseInt(choice);
             if (index >= 1 && index <= running.size()) {
+                AppLog.info("node.process.selected", "pid", running.get(index - 1).pid(), "selection", "user");
                 return Optional.of(new ProcessSelection(running.get(index - 1), false));
             }
         } catch (NumberFormatException ignored) {
@@ -114,10 +133,13 @@ public final class NodeSwitcher {
         Optional<Path> processConfig = SingBoxProcessManager.configPath(process);
         if (processConfig.isEmpty()) {
             if (!allowUnknownConfig) {
+                AppLog.failure("node.config.validation.failed", "pid", process.pid(), "reason", "unknown_config");
                 System.err.println("Switch aborted: could not determine the config file used by selected sing-box process "
                         + process.pid() + ".");
                 return false;
             }
+            AppLog.warning("node.config.validation.unavailable", "pid", process.pid(),
+                    "fallback", "Clash API validation");
             System.out.println("Could not determine the config file used by sing-box process " + process.pid()
                     + ". Continuing with Clash API validation.");
             return true;
@@ -126,11 +148,14 @@ public final class NodeSwitcher {
         // 两边都转换为规范路径后比较，可处理相对路径和符号链接。
         Path normalizedProcessConfig = normalizeConfigPath(processConfig.get());
         if (!normalizedProcessConfig.equals(currentConfig)) {
+            AppLog.failure("node.config.validation.failed", "pid", process.pid(), "reason", "different_config",
+                    "process_config", normalizedProcessConfig, "expected_config", currentConfig);
             System.err.println("Switch aborted: selected sing-box process " + process.pid()
                     + " is using a different config file: " + normalizedProcessConfig
                     + " (current: " + currentConfig + ")");
             return false;
         }
+        AppLog.info("node.config.validated", "pid", process.pid(), "path", currentConfig);
         return true;
     }
 
@@ -156,7 +181,9 @@ public final class NodeSwitcher {
                 return Optional.of(SingBoxConfig.stringFieldOrDefault(response.body(), "now", ""));
             }
             System.out.println("Failed to read the current node. HTTP " + response.statusCode());
+            AppLog.failure("node.query.failed", "http_status", response.statusCode());
         } catch (Exception e) {
+            AppLog.errorRedacted("node.query.failed", e, view.secret());
             System.out.println("Failed to read the current node: " + SingBoxProcessManager.errorMessage(e));
             System.out.println("Make sure sing-box is running and using a config.json with Clash API enabled.");
         }
@@ -200,7 +227,11 @@ public final class NodeSwitcher {
         } else {
             builder.GET();
         }
-        return HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        AppLog.info("clash.request", "method", method, "selector", proxyName);
+        HttpResponse<String> response = HttpClient.newHttpClient().send(
+                builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        AppLog.info("clash.response", "method", method, "http_status", response.statusCode());
+        return response;
     }
 
     // 打印可选节点列表，并用星号标记当前节点。

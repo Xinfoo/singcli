@@ -1,6 +1,7 @@
 package singcli.commands;
 
 import singcli.app.ConsoleInput;
+import singcli.app.AppLog;
 import singcli.process.SingBoxProcessManager;
 
 import java.util.List;
@@ -18,7 +19,10 @@ public final class StopSingBox {
             Scanner scanner = ConsoleInput.scanner();
             // 先搜索所有疑似 sing-box 的进程。
             List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
+            AppLog.info("singbox.processes.detected", "count", running.size(),
+                    "pids", SingBoxProcessManager.processIds(running));
             if (running.isEmpty()) {
+                AppLog.skipped("singbox.stop.skipped", "reason", "not_running");
                 System.out.println("No running sing-box process was detected.");
                 return 0;
             }
@@ -28,7 +32,9 @@ public final class StopSingBox {
                 ProcessHandle process = running.get(0);
                 System.out.println("Detected a sing-box process:");
                 SingBoxProcessManager.printProcessTable(running);
+                AppLog.info("singbox.stop.requested", "pids", process.pid());
                 SingBoxProcessManager.terminateProcesses(List.of(process));
+                AppLog.info("singbox.stopped", "pids", process.pid());
                 System.out.println("Stopped sing-box process: " + process.pid());
                 return 0;
             }
@@ -39,12 +45,16 @@ public final class StopSingBox {
             List<ProcessHandle> selected = chooseProcesses(scanner, running);
             // 用户直接回车表示取消操作，按正常退出处理。
             if (selected.isEmpty()) {
+                AppLog.cancelled("singbox.stop.cancelled");
                 return 0;
             }
+            AppLog.info("singbox.stop.requested", "pids", SingBoxProcessManager.processIds(selected));
             SingBoxProcessManager.terminateProcesses(selected);
+            AppLog.info("singbox.stopped", "pids", SingBoxProcessManager.processIds(selected));
             System.out.println("Stopped sing-box processes: " + SingBoxProcessManager.processIds(selected));
             return 0;
         } catch (Exception e) {
+            AppLog.error("singbox.stop.failed", e);
             System.err.println("Stop failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
@@ -54,6 +64,7 @@ public final class StopSingBox {
     private static List<ProcessHandle> chooseProcesses(Scanner scanner, List<ProcessHandle> processes) {
         System.out.print("Enter the number to stop, enter a/all to stop all, or press Enter to exit: ");
         String choice = scanner.nextLine().trim();
+        AppLog.info("singbox.stop.selection", "choice", choice);
         if (choice.isEmpty()) {
             System.out.println("Exited.");
             return List.of();

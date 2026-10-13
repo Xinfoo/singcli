@@ -1,5 +1,6 @@
 package singcli.commands;
 
+import singcli.app.AppLog;
 import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.platform.KdeSystemProxy;
@@ -19,6 +20,7 @@ public final class SetSystemProxy {
 
     public static int run(String[] args) {
         if (!SingBoxProcessManager.isWindows() && !SingBoxProcessManager.isLinux()) {
+            AppLog.failure("system_proxy.unsupported", "os", System.getProperty("os.name"));
             System.err.println("Set system proxy is only supported on Windows and Linux KDE (kwriteconfig6).");
             return 1;
         }
@@ -30,6 +32,8 @@ public final class SetSystemProxy {
 
             String config = Files.readString(CONFIG_PATH, StandardCharsets.UTF_8);
             String proxyAddress = SingBoxConfig.localProxyAddress(config);
+            AppLog.info("system_proxy.enable.requested", "address", proxyAddress,
+                    "platform", SingBoxProcessManager.isWindows() ? "Windows" : "KDE6");
             if (SingBoxProcessManager.isWindows()) {
                 WindowsSystemProxy.set(proxyAddress);
                 System.out.println("Windows system proxy enabled: " + proxyAddress);
@@ -37,8 +41,10 @@ public final class SetSystemProxy {
                 KdeSystemProxy.set(proxyAddress);
                 System.out.println("Linux KDE system proxy enabled: " + proxyAddress);
             }
+            AppLog.info("system_proxy.enabled", "address", proxyAddress);
             return 0;
         } catch (Exception e) {
+            AppLog.error("system_proxy.enable.failed", e);
             System.err.println("Set system proxy failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }

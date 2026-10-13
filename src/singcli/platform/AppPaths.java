@@ -13,6 +13,7 @@ public final class AppPaths {
     private static final String APP_DIR_NAME = "singcli";
     private static final String CONFIG_FILE_NAME = "config.json";
     private static final String SING_BOX_LOG_FILE_NAME = "sing-box.log";
+    private static final String SINGCLI_LOG_FILE_NAME = "singcli.log";
 
     private AppPaths() {
     }
@@ -31,16 +32,24 @@ public final class AppPaths {
     }
 
     // 日志固定放在 Linux ~/.local/state/singcli 或 Windows 本地应用数据目录下。
-    public static Path singBoxLogPath() {
+    public static Path logDirectory() {
         if (SingBoxProcessManager.isWindows()) {
             String localAppData = System.getenv("LOCALAPPDATA");
             Path directory = localAppData != null && !localAppData.isBlank()
                     ? Path.of(localAppData, APP_DIR_NAME)
                     : Path.of(System.getProperty("user.home"), "AppData", "Local", APP_DIR_NAME);
-            return directory.resolve(SING_BOX_LOG_FILE_NAME).toAbsolutePath().normalize();
+            return directory.toAbsolutePath().normalize();
         }
-        return Path.of(System.getProperty("user.home"), ".local", "state", APP_DIR_NAME,
-                SING_BOX_LOG_FILE_NAME).toAbsolutePath().normalize();
+        return Path.of(System.getProperty("user.home"), ".local", "state", APP_DIR_NAME)
+                .toAbsolutePath().normalize();
+    }
+
+    public static Path singBoxLogPath() {
+        return logDirectory().resolve(SING_BOX_LOG_FILE_NAME);
+    }
+
+    public static Path singcliLogPath() {
+        return logDirectory().resolve(SINGCLI_LOG_FILE_NAME);
     }
 
     // 返回当前程序的安装目录。Native Image 取可执行文件所在目录，JAR 取 JAR 所在目录。

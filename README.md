@@ -14,6 +14,7 @@ http://127.0.0.1:7897
 - 自动补齐本工具需要的 mixed inbound 和 Clash API 配置
 - 启动和停止 `sing-box`
 - 将 `sing-box` 的标准输出和错误输出追加到 `sing-box.log`
+- 在 `singcli.log` 中记录用户操作、命令结果和错误详情
 - 通过 Clash API 切换 selector 节点
 
 项目刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
@@ -162,6 +163,37 @@ Windows 默认对应 `C:\Users\<用户名>\AppData\Local\singcli\sing-box.log`�
 
 日志由 sing-box 进程直接写入文件，singcli 退出后仍会继续记录，不需要常驻守护进程。
 每次启动会保留并追加已有日志，目前不提供日志轮转或自动清理。
+
+## singcli 操作日志
+
+singcli 自动创建并追加操作日志，和 `sing-box.log` 放在同一目录：
+
+- Linux：`~/.local/state/singcli/singcli.log`
+- Windows：`%LOCALAPPDATA%\singcli\singcli.log`
+
+每条日志包含当前系统时区的时间戳、日志级别、会话 ID 和 singcli PID。
+命令相关日志还包含命令名称、操作编号；命令结束时记录结果、退出码和耗时。
+结果区分 `SUCCESS`（成功）、`FAILED`（失败）、`CANCELLED`（取消）和
+`SKIPPED`（无需执行），用户取消不会记为成功。日志结果与原有进程退出码分别记录，
+例如节点切换因配置不匹配中止时会记为失败，但保留原来的退出码行为。
+
+记录内容包括：
+
+- 程序启动和退出、命令行参数数量、未知命令、菜单选择和返回/退出。
+- 获取配置的来源协议和主机、HTTP 状态、下载大小和耗时、配置处理和写入路径。
+- sing-box 进程检测、用户确认、可执行文件选择、启动请求和子进程 PID、停止及强制终止。
+- 状态查询、节点选择、配置路径校验、切换前后的节点、Clash API 方法和 HTTP 状态。
+- 系统代理启用/关闭、代理地址、目标平台和版本信息查看。
+- 失败时的异常类名、错误消息、直接原因及异常堆栈。
+
+`get` 失败时还记录失败阶段和错误分类，包括 HTTP 错误、超时、DNS、TLS、无效 URL、
+配置处理错误和文件写入错误；HTTP 错误会保留返回状态码。
+订阅 URL 的路径、用户信息、查询参数以及配置内容不写入日志，异常中的 URL 会隐藏，
+节点切换错误中的已知 Clash API secret 也会隐藏。日志字段中的换行会转义，便于逐行查看。
+
+日志同步写入，无后台线程或常驻守护进程。已有日志持续追加，目前不轮转或自动清理；
+如果日志写入失败，只在终端提示一次，命令仍按原有流程执行。
+启动成功日志表示已创建 sing-box 子进程，其后续运行状态与错误请查看 `sing-box.log` 或执行 `status`。
 
 ## sing-box 查找规则
 

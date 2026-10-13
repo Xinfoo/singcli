@@ -1,6 +1,7 @@
 package singcli.commands;
 
 import singcli.app.ConsoleInput;
+import singcli.app.AppLog;
 import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.process.SingBoxProcessManager;
@@ -30,15 +31,19 @@ public final class StartSingBox {
             Scanner scanner = ConsoleInput.scanner();
             // 启动前先查找已有 sing-box 进程，避免多个进程同时占用端口或使用不同配置。
             List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
+            AppLog.info("singbox.processes.detected", "count", running.size(),
+                    "pids", SingBoxProcessManager.processIds(running));
             if (!running.isEmpty()) {
                 System.out.println("Detected an existing running sing-box process:");
                 SingBoxProcessManager.printProcessTable(running);
                 // 用户不确认停止旧进程时，保持现状并正常退出。
                 if (!confirm(scanner, "Stop the currently running sing-box process? (y/N): ")) {
+                    AppLog.cancelled("singbox.start.cancelled", "reason", "existing_process_kept");
                     System.out.println("Exited.");
                     return 0;
                 }
                 SingBoxProcessManager.terminateProcesses(running);
+                AppLog.info("singbox.existing_processes.stopped", "pids", SingBoxProcessManager.processIds(running));
             }
 
             if (!Files.exists(CONFIG_PATH)) {
@@ -46,17 +51,20 @@ public final class StartSingBox {
             }
 
             List<Path> candidates = findSingBoxBinaries();
+            AppLog.info("singbox.binaries.detected", "count", candidates.size(), "paths", candidates);
             if (candidates.isEmpty()) {
                 throw new IllegalArgumentException("sing-box executable was not found in PATH or the installation directory: " + AppPaths.installationDirectory());
             }
 
             // 多个候选时让用户选择，之后用选中的二进制启动进程。
             Path singBox = chooseSingBox(scanner, candidates);
+            AppLog.info("singbox.binary.selected", "path", singBox);
             startSingBox(singBox);
             System.out.println("sing-box started.");
             System.out.println("Log file: " + AppPaths.singBoxLogPath());
             return 0;
         } catch (Exception e) {
+            AppLog.error("singbox.start.failed", e);
             System.err.println("Start failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
@@ -66,7 +74,9 @@ public final class StartSingBox {
     private static boolean confirm(Scanner scanner, String prompt) {
         System.out.print(prompt);
         String answer = scanner.nextLine().trim().toLowerCase(Locale.ROOT);
-        return "y".equals(answer) || "yes".equals(answer);
+        boolean confirmed = "y".equals(answer) || "yes".equals(answer);
+        AppLog.info("singbox.stop.confirmed", "confirmed", confirmed);
+        return confirmed;
     }
 
     private static List<Path> findSingBoxBinaries() {
@@ -119,6 +129,7 @@ public final class StartSingBox {
         }
         System.out.print("Enter the number: ");
         String choice = scanner.nextLine().trim();
+        AppLog.info("singbox.binary.selection", "choice", choice);
         try {
             // 输入必须落在候选列表范围内。
             int index = Integer.parseInt(choice);
@@ -134,11 +145,13 @@ public final class StartSingBox {
         Path config = CONFIG_PATH.toAbsolutePath().normalize();
         Path logFile = AppPaths.singBoxLogPath();
         Files.createDirectories(logFile.getParent());
+        AppLog.info("singbox.config.read", "path", config);
         // 已有配置也统一日志选项，避免 disabled 或 output 让重定向收不到正常日志。
         String originalConfig = Files.readString(config, StandardCharsets.UTF_8);
         String updatedConfig = SingBoxConfig.normalizeLogConfig(originalConfig);
         if (!updatedConfig.equals(originalConfig)) {
             Files.writeString(config, updatedConfig, StandardCharsets.UTF_8);
+            AppLog.info("singbox.logging.normalized", "config", config);
         }
         ProcessBuilder builder = new ProcessBuilder(
                 singBox.toString(),
@@ -151,6 +164,8 @@ public final class StartSingBox {
         // 子进程直接向日志文件追加输出，singcli 无需常驻读取或转发。
         builder.redirectErrorStream(true);
         builder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
-        builder.start();
+        AppLog.info("singbox.spawn.requested", "binary", singBox, "config", config, "log_file", logFile);
+        Process process = builder.start();
+        AppLog.info("singbox.spawned", "pid", process.pid());
     }
 }

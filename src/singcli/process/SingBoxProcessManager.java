@@ -1,5 +1,7 @@
 package singcli.process;
 
+import singcli.app.AppLog;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,19 +84,23 @@ public final class SingBoxProcessManager {
             return;
         }
         for (ProcessHandle process : processes) {
-            process.destroy();
+            boolean requested = process.destroy();
+            AppLog.info("singbox.terminate.requested", "pid", process.pid(), "accepted", requested);
         }
         waitForExit(processes, 3);
         for (ProcessHandle process : processes) {
             if (process.isAlive()) {
-                process.destroyForcibly();
+                boolean requested = process.destroyForcibly();
+                AppLog.warning("singbox.terminate.forced", "pid", process.pid(), "accepted", requested);
             }
         }
         waitForExit(processes, 5);
         List<ProcessHandle> stillAlive = processes.stream().filter(ProcessHandle::isAlive).toList();
         if (!stillAlive.isEmpty()) {
+            AppLog.failure("singbox.terminate.failed", "pids", processIds(stillAlive));
             throw new IllegalStateException("Some sing-box processes could not be stopped: " + processIds(stillAlive));
         }
+        AppLog.info("singbox.terminate.completed", "pids", processIds(processes));
     }
 
     public static void waitForExit(List<ProcessHandle> processes, long seconds) {

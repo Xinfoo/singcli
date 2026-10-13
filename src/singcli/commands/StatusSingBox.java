@@ -1,6 +1,7 @@
 package singcli.commands;
 
 import singcli.app.ConsoleInput;
+import singcli.app.AppLog;
 import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.process.SingBoxProcessManager;
@@ -37,7 +38,10 @@ public final class StatusSingBox {
         try {
             // status 是只读操作：没有进程时直接报告状态，不作为命令执行失败处理。
             List<ProcessHandle> running = SingBoxProcessManager.findRunningSingBoxProcesses();
+            AppLog.info("singbox.processes.detected", "count", running.size(),
+                    "pids", SingBoxProcessManager.processIds(running));
             if (running.isEmpty()) {
+                AppLog.info("singbox.status", "running", false);
                 System.out.println("sing-box is not running.");
                 return 0;
             }
@@ -46,6 +50,7 @@ public final class StatusSingBox {
             ProcessHandle process = selectProcess(running);
             // 优先读取进程命令行里的 -c/--config 路径；无法取得时退回 singcli 默认配置。
             Path configPath = SingBoxProcessManager.configPath(process).orElse(AppPaths.configPath());
+            AppLog.info("singbox.status.process.selected", "pid", process.pid(), "config", configPath);
             if (!Files.isRegularFile(configPath)) {
                 throw new IllegalStateException("Could not read the config used by sing-box process " + process.pid());
             }
@@ -54,6 +59,8 @@ public final class StatusSingBox {
             SingBoxConfig.ConfigView view = SingBoxConfig.readConfigView(
                     Files.readString(configPath, StandardCharsets.UTF_8));
             String currentNode = queryCurrentNode(view);
+            AppLog.info("singbox.status", "running", true, "pid", process.pid(),
+                    "config", configPath, "selector", view.selectorTag(), "current_node", currentNode);
 
             // 进程表沿用其它命令的统一格式，并额外显示 status 特有的配置和节点信息。
             System.out.println("sing-box is running.");
@@ -62,6 +69,7 @@ public final class StatusSingBox {
             System.out.println("Current node: " + (currentNode.isEmpty() ? "Unknown" : currentNode));
             return 0;
         } catch (Exception e) {
+            AppLog.error("singbox.status.failed", e);
             System.err.println("Status failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
@@ -71,9 +79,13 @@ public final class StatusSingBox {
         Scanner scanner = ConsoleInput.scanner();
         System.out.println();
         System.out.print("Press Enter to exit...");
+        AppLog.info("status.exit.requested");
         // 输入被重定向且已经到达 EOF 时直接结束，避免抛出 NoSuchElementException。
         if (scanner.hasNextLine()) {
             scanner.nextLine();
+            AppLog.info("status.exit.confirmed", "reason", "user_input");
+        } else {
+            AppLog.info("status.exit.confirmed", "reason", "end_of_input");
         }
     }
 
@@ -107,8 +119,10 @@ public final class StatusSingBox {
         if (!view.secret().isEmpty()) {
             builder.header("Authorization", "Bearer " + view.secret());
         }
+        AppLog.info("clash.request", "method", "GET", "selector", view.selectorTag());
         HttpResponse<String> response = HttpClient.newHttpClient().send(
                 builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+        AppLog.info("clash.response", "method", "GET", "http_status", response.statusCode());
         // 非成功响应不能代表真实节点状态，因此作为 status 命令失败返回。
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IllegalStateException("Clash API returned HTTP " + response.statusCode());

@@ -1,5 +1,6 @@
 package singcli.commands;
 
+import singcli.app.AppLog;
 import singcli.platform.KdeSystemProxy;
 import singcli.platform.WindowsSystemProxy;
 import singcli.process.SingBoxProcessManager;
@@ -11,11 +12,14 @@ public final class UnsetSystemProxy {
 
     public static int run(String[] args) {
         if (!SingBoxProcessManager.isWindows() && !SingBoxProcessManager.isLinux()) {
+            AppLog.failure("system_proxy.unsupported", "os", System.getProperty("os.name"));
             System.err.println("Unset system proxy is only supported on Windows and Linux KDE (kwriteconfig6).");
             return 1;
         }
 
         try {
+            AppLog.info("system_proxy.disable.requested",
+                    "platform", SingBoxProcessManager.isWindows() ? "Windows" : "KDE6");
             if (SingBoxProcessManager.isWindows()) {
                 WindowsSystemProxy.unset();
                 System.out.println("Windows system proxy disabled.");
@@ -23,8 +27,10 @@ public final class UnsetSystemProxy {
                 KdeSystemProxy.unset();
                 System.out.println("Linux KDE system proxy disabled.");
             }
+            AppLog.info("system_proxy.disabled");
             return 0;
         } catch (Exception e) {
+            AppLog.error("system_proxy.disable.failed", e);
             System.err.println("Unset system proxy failed: " + SingBoxProcessManager.errorMessage(e));
             return 1;
         }
