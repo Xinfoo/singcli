@@ -2,20 +2,21 @@ package singcli.platform;
 
 import singcli.process.SingBoxProcessManager;
 
+import org.graalvm.nativeimage.Platform;
+import org.graalvm.nativeimage.Platforms;
+import org.graalvm.nativeimage.c.CContext;
+import org.graalvm.nativeimage.c.function.CFunction;
+
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 // 让 Windows Native Image 的标准流编码与当前控制台代码页保持一致。
 public final class ConsoleEncoding {
-    private static final Pattern CODE_PAGE_PATTERN = Pattern.compile("(\\d+)");
-
     private ConsoleEncoding() {
     }
 
@@ -33,33 +34,45 @@ public final class ConsoleEncoding {
         });
     }
 
-    // chcp 的提示文字会随系统语言变化，因此只提取输出中的代码页数字。
+    // 直接读取当前控制台代码页，查询失败时保留标准流的默认编码。
     private static Optional<Charset> currentConsoleCharset() {
+        if (!Platform.includedIn(Platform.WINDOWS.class)) {
+            return Optional.empty();
+        }
         try {
-            Process process = new ProcessBuilder("cmd.exe", "/d", "/c", "chcp")
-                    .redirectErrorStream(true)
-                    .start();
-            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.ISO_8859_1);
-            if (process.waitFor() != 0) {
-                return Optional.empty();
-            }
-
-            Matcher matcher = CODE_PAGE_PATTERN.matcher(output);
-            int codePage = -1;
-            while (matcher.find()) {
-                codePage = Integer.parseInt(matcher.group(1));
-            }
-            if (codePage < 0) {
+            int codePage = WindowsConsole.outputCodePage();
+            if (codePage == 0) {
                 return Optional.empty();
             }
             return Optional.of(codePage == 65001
                     ? StandardCharsets.UTF_8
                     : Charset.forName("cp" + codePage));
-        } catch (IOException | IllegalArgumentException exception) {
-            return Optional.empty();
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
+        } catch (IllegalArgumentException exception) {
             return Optional.empty();
         }
+    }
+
+    public static final class WindowsHeaders implements CContext.Directives {
+        @Override
+        public boolean isInConfiguration() {
+            return Platform.includedIn(Platform.WINDOWS.class);
+        }
+
+        @Override
+        public List<String> getHeaderFiles() {
+            return List.of("<windows.h>");
+        }
+
+        @Override
+        public List<String> getLibraries() {
+            return List.of("kernel32");
+        }
+    }
+
+    @Platforms(Platform.WINDOWS.class)
+    @CContext(WindowsHeaders.class)
+    private static final class WindowsConsole {
+        @CFunction(value = "GetConsoleOutputCP", transition = CFunction.Transition.NO_TRANSITION)
+        private static native int outputCodePage();
     }
 }

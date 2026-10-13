@@ -17,12 +17,12 @@ http://127.0.0.1:7897
 
 项目刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
 
-仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可直接使用 Java LSP、实时错误检查和源码调试功能；按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成原生程序，`GraalVM: Run singcli` 任务会先构建再运行原生程序。运行和调试面板中的 `Debug singcli` 用于 JVM 下的 Java 源码调试。
+仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可使用 Java LSP、实时错误检查和源码调试功能；项目使用 GraalVM SDK，请在 `Java: Configure Java Runtime` 中选择 GraalVM 作为项目 JDK。按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成原生程序，`GraalVM: Run singcli` 任务会先构建再运行原生程序。运行和调试面板中的 `Debug singcli` 用于 JVM 下的 Java 源码调试。
 
 ## 环境要求
 
 - Python 3
-- GraalVM Native Image（包含 `javac`、`jar` 和 `native-image`）
+- GraalVM Native Image（包含 `javac`、`jar`、`native-image` 和 `jmods/org.graalvm.nativeimage.jmod` SDK 模块）
 - Linux 原生构建需要 GCC 和 zlib 开发文件
 - Linux 系统代理设置仅支持 KDE Plasma 6，需要 `kwriteconfig6` 位于 `PATH` 中
 - `sing-box` 位于 `PATH` 中，或放在生成后的 singcli 程序同目录
