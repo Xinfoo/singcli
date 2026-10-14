@@ -5,6 +5,14 @@
     ],
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [],
+    // 当前开发环境使用 GraalVM，供 Java LSP 解析 Native Image SDK。
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "/home/xinfoo/.local/lib/jvm/current",
+            "default": true
+        }
+    ],
     "java.configuration.updateBuildConfiguration": "automatic",
     "java.compile.nullAnalysis.mode": "automatic",
     "java.debug.settings.console": "integratedTerminal",

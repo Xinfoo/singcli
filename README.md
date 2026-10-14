@@ -19,7 +19,13 @@ http://127.0.0.1:7897
 
 项目刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
 
-仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可使用 Java LSP、实时错误检查和源码调试功能；项目使用 GraalVM SDK，请在 `Java: Configure Java Runtime` 中选择 GraalVM 作为项目 JDK。按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成原生程序，`GraalVM: Run singcli` 任务会先构建再运行原生程序。运行和调试面板中的 `Debug singcli` 用于 JVM 下的 Java 源码调试。
+仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可使用 Java LSP、实时错误检查和源码调试功能。
+
+`.vscode/settings.json` 中的 `java.configuration.runtimes` 已将 GraalVM 配置为默认项目 JDK，当前使用 `JavaSE-25`，路径为 `/home/xinfoo/.local/lib/jvm/current`。这个路径属于当前开发机器；在其它机器或 Windows 上开发时，需要将 `path` 改为本机 GraalVM 安装目录，并将 `name` 与实际 JDK 版本对应，保持 `default: true`。可以通过 `Java: Configure Java Runtime` 查看项目使用的 JDK。
+
+Java LSP 的项目 JDK 配置与 `scripts/build.py` 的 GraalVM 查找规则相互独立。普通 JDK 无法解析本项目使用的 Native Image SDK 类型；如果编辑器提示 `The import org.graalvm cannot be resolved`，请确认默认项目 JDK 指向 GraalVM。修改配置后如果仍显示旧错误，可执行 `Java: Clean Java Language Server Workspace` 并重新加载窗口。
+
+按 `Ctrl+Shift+B`（macOS 为 `Cmd+Shift+B`）会执行默认构建任务并生成原生程序，`GraalVM: Run singcli` 任务会先构建再运行原生程序。运行和调试面板中的 `Debug singcli` 用于 JVM 下的 Java 源码调试；Windows 的 `set` / `unset` 需要使用原生程序运行。
 
 ## 环境要求
 
