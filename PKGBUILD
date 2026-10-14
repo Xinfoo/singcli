@@ -7,7 +7,7 @@ arch=('x86_64')
 url='https://github.com/Xinfoo/singcli'
 license=('MIT')
 depends=('glibc' 'sing-box' 'zlib')
-# GraalVM Native Image must be available through GRAALVM_HOME, JAVA_HOME,
+# GraalVM Native Image with JDK 25+ must be available through GRAALVM_HOME, JAVA_HOME,
 # PATH, or ~/.local/lib/jvm/current/
 makedepends=('gcc' 'python' 'zlib')
 options=('!debug')

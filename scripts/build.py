@@ -42,7 +42,7 @@ def main() -> int:
 
     run([
         str(javac),
-        "--release", "17",
+        "--release", "25",
         "--module-path", str(graalvm_home / "jmods"),
         "--add-modules", "org.graalvm.nativeimage",
         "-encoding", "UTF-8",

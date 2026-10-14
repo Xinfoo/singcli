@@ -17,7 +17,7 @@ http://127.0.0.1:7897
 - 在 `singcli.log` 中记录用户操作、命令结果和错误详情
 - 通过 Clash API 切换 selector 节点
 
-项目刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
+项目以 Java 25 为编译目标（`javac --release 25`），刻意不使用 Maven 或 Gradle。统一使用 Python 脚本调用 GraalVM Native Image 构建原生程序。
 
 仓库包含 VS Code Java 配置。安装工作区推荐的 `Extension Pack for Java` 后，可使用 Java LSP、实时错误检查和源码调试功能。
 
@@ -30,7 +30,7 @@ Java LSP 的项目 JDK 配置与 `scripts/build.py` 的 GraalVM 查找规则相�
 ## 环境要求
 
 - Python 3
-- GraalVM Native Image（包含 `javac`、`jar`、`native-image` 和 `jmods/org.graalvm.nativeimage.jmod` SDK 模块）
+- 基于 JDK 25 或更高版本的 GraalVM Native Image（包含 `javac`、`jar`、`native-image` 和 `jmods/org.graalvm.nativeimage.jmod` SDK 模块）
 - Linux 原生构建需要 GCC 和 zlib 开发文件
 - Linux 系统代理设置仅支持 KDE Plasma 6，需要 `kwriteconfig6` 位于 `PATH` 中
 - `sing-box` 位于 `PATH` 中，或放在生成后的 singcli 程序同目录
@@ -62,7 +62,7 @@ Windows 下生成 `dist/singcli.exe`。构建过程中生成的 `build/native/si
 
 Windows 安装器使用 `scripts/windows-installer.iss`，需要先构建
 `dist/singcli.exe`，再通过 Inno Setup 命令行编译器生成安装包：
-构建环境需要 Windows x64 版 GraalVM Native Image、MSVC 和 Inno Setup。
+构建环境需要基于 JDK 25 或更高版本的 Windows x64 版 GraalVM Native Image、MSVC 和 Inno Setup。
 
 ```powershell
 python scripts\build.py
