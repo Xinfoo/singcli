@@ -22,7 +22,7 @@ DIST_DIR = ROOT / "dist"
 NATIVE_IMAGE_OUTPUT_PATH = DIST_DIR / "singcli"
 EXECUTABLE_PATH = NATIVE_IMAGE_OUTPUT_PATH.with_suffix(".exe") if os.name == "nt" else NATIVE_IMAGE_OUTPUT_PATH
 MAIN_CLASS = "singcli.Main"
-APP_VERSION = "1.2.5"
+APP_VERSION = "1.3"
 
 
 def main() -> int:
