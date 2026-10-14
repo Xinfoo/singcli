@@ -2,6 +2,7 @@ package singcli.commands;
 
 import singcli.app.ConsoleInput;
 import singcli.app.AppLog;
+import singcli.app.LogArchive;
 import singcli.config.SingBoxConfig;
 import singcli.platform.AppPaths;
 import singcli.process.SingBoxProcessManager;
@@ -144,7 +145,6 @@ public final class StartSingBox {
     private static void startSingBox(Path singBox) throws IOException {
         Path config = CONFIG_PATH.toAbsolutePath().normalize();
         Path logFile = AppPaths.singBoxLogPath();
-        Files.createDirectories(logFile.getParent());
         AppLog.info("singbox.config.read", "path", config);
         // 已有配置也统一日志选项，避免 disabled 或 output 让重定向收不到正常日志。
         String originalConfig = Files.readString(config, StandardCharsets.UTF_8);
@@ -165,6 +165,15 @@ public final class StartSingBox {
         builder.redirectErrorStream(true);
         builder.redirectOutput(ProcessBuilder.Redirect.appendTo(logFile.toFile()));
         AppLog.info("singbox.spawn.requested", "binary", singBox, "config", config, "log_file", logFile);
+        // 旧进程已停止、二进制已选定且配置处理成功后，才维护日志并立即启动子进程。
+        LogArchive.Result result = LogArchive.prepare(logFile);
+        if (result.archived() != null) {
+            AppLog.info("singbox.log.archived", "path", result.archived(), "previous_bytes", result.previousBytes(),
+                    "timestamp_source", result.usedModificationTime() ? "file_modified_time" : "last_log_line");
+        }
+        if (!result.deleted().isEmpty()) {
+            AppLog.info("singbox.log.archives.cleaned", "deleted", result.deleted(), "retained_limit", 4);
+        }
         Process process = builder.start();
         AppLog.info("singbox.spawned", "pid", process.pid());
     }
