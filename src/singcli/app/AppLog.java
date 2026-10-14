@@ -23,9 +23,30 @@ public final class AppLog {
     private static final Pattern URL_PATTERN = Pattern.compile("(?i)[a-z][a-z0-9+.-]*://[^\\s\"'<>]+");
     private static int sequence;
     private static CommandContext current;
+    private static boolean initialized;
     private static boolean writeFailureReported;
 
     private AppLog() {
+    }
+
+    // 在本次运行第一条日志写入前，完成大小检查、归档和旧文件清理。
+    public static synchronized void initialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
+        try {
+            LogArchive.Result result = LogArchive.prepare(AppPaths.singcliLogPath());
+            if (result.archived() != null) {
+                info("log.archived", "path", result.archived(), "previous_bytes", result.previousBytes(),
+                        "timestamp_source", result.usedModificationTime() ? "file_modified_time" : "last_log_line");
+            }
+            if (!result.deleted().isEmpty()) {
+                info("log.archives.cleaned", "deleted", result.deleted(), "retained_limit", 4);
+            }
+        } catch (Exception exception) {
+            reportFailure("Could not prepare singcli.log", exception);
+        }
     }
 
     // 命令行和交互菜单共用入口，记录命令开始、结果、退出码和耗时。
@@ -116,6 +137,7 @@ public final class AppLog {
     private static synchronized void write(String level, String event, Object... fields) {
         // 日志写入失败只提示一次，不改变用户命令的原有执行结果。
         try {
+            initialize();
             StringBuilder line = new StringBuilder(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                     .append(' ').append(level);
             field(line, "pid", PID);
@@ -133,10 +155,14 @@ public final class AppLog {
             Files.writeString(path, line, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (Exception exception) {
-            if (!writeFailureReported) {
-                writeFailureReported = true;
-                System.err.println("Could not write singcli.log: " + exception.getClass().getSimpleName());
-            }
+            reportFailure("Could not write singcli.log", exception);
+        }
+    }
+
+    private static void reportFailure(String message, Exception exception) {
+        if (!writeFailureReported) {
+            writeFailureReported = true;
+            System.err.println(message + ": " + exception.getClass().getSimpleName());
         }
     }
 

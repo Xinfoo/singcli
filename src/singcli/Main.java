@@ -20,6 +20,7 @@ import java.util.Locale;
 public class Main {
     public static void main(String[] args) {
         ConsoleEncoding.configure();
+        AppLog.initialize();
         AppLog.info("app.started", "mode", args.length == 0 ? "interactive" : "command",
                 "argument_count", args.length, "version", BuildInfo.load().version(),
                 "os", System.getProperty("os.name"));
