@@ -177,7 +177,7 @@ singcli 自动创建并追加操作日志，和 `sing-box.log` 放在同一目�
 - Linux：`~/.local/state/singcli/singcli.log`
 - Windows：`%LOCALAPPDATA%\singcli\singcli.log`
 
-每条日志包含当前系统时区的时间戳、日志级别、会话 ID 和 singcli PID。
+每条日志包含当前系统时区的时间戳、日志级别和 singcli PID。
 命令相关日志还包含命令名称、操作编号；命令结束时记录结果、退出码和耗时。
 结果区分 `SUCCESS`（成功）、`FAILED`（失败）、`CANCELLED`（取消）和
 `SKIPPED`（无需执行），用户取消不会记为成功。日志结果与原有进程退出码分别记录，

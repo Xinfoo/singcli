@@ -14,13 +14,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.IntSupplier;
 import java.util.regex.Pattern;
 
 // 同步追加操作日志；每次写入关闭文件，不创建后台线程或常驻进程。
 public final class AppLog {
-    private static final String SESSION = UUID.randomUUID().toString();
     private static final long PID = ProcessHandle.current().pid();
     private static final Pattern URL_PATTERN = Pattern.compile("(?i)[a-z][a-z0-9+.-]*://[^\\s\"'<>]+");
     private static int sequence;
@@ -120,7 +118,6 @@ public final class AppLog {
         try {
             StringBuilder line = new StringBuilder(OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                     .append(' ').append(level);
-            field(line, "session", SESSION);
             field(line, "pid", PID);
             if (current != null) {
                 field(line, "command", current.command);
